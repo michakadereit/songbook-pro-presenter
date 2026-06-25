@@ -1,0 +1,26 @@
+import { parseSbp } from './parser';
+
+const app = document.querySelector<HTMLDivElement>('#app')!;
+
+app.innerHTML = `
+  <main class="dropzone">
+    <h1>Songbook Pro Presenter</h1>
+    <p>Ziehe eine <code>.sbp</code>-Datei hierher oder wähle sie aus.</p>
+    <input type="file" id="file-input" accept=".sbp" />
+    <pre id="status"></pre>
+  </main>
+`;
+
+const input = app.querySelector<HTMLInputElement>('#file-input')!;
+const status = app.querySelector<HTMLPreElement>('#status')!;
+
+input.addEventListener('change', async () => {
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    const set = await parseSbp(file);
+    status.textContent = `Geladen: ${set.name} (${set.songs.length} Songs)`;
+  } catch (err) {
+    status.textContent = `Noch nicht implementiert: ${(err as Error).message}`;
+  }
+});

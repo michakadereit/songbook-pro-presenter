@@ -1,0 +1,33 @@
+:root {
+  --bg: #111;
+  --fg: #f5f5f5;
+  --accent: #4f9dff;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+}
+
+.dropzone {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+
+.dropzone h1 {
+  color: var(--accent);
+}
+
+#status {
+  margin-top: 1.5rem;
+  color: #aaa;
+}
