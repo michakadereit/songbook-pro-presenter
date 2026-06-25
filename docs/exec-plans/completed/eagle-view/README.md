@@ -23,9 +23,13 @@ Der neue reine Helfer `transposeSong` wird später auch von der SlideView genutz
 
 | Ticket | Titel | ACs | Abhängig von | Modell | Status |
 |--------|-------|-----|--------------|--------|--------|
-| TICKET-001 | `transposeSong`-Helfer | AC3 | — | Sonnet | TODO |
-| TICKET-002 | Eagle-Grid & Kacheln | AC1, AC2 | — | Opus | TODO |
-| TICKET-003 | Transpose-Regler & Lyric-Suche | AC4, AC5, AC6, AC7, AC8 | 001, 002 | Sonnet | TODO |
+| TICKET-001 | `transposeSong`-Helfer | AC3 | — | Sonnet | ✅ DONE |
+| TICKET-002 | Eagle-Grid & Kacheln | AC1, AC2 | — | Opus | ✅ DONE |
+| TICKET-003 | Transpose-Regler & Lyric-Suche | AC4, AC5, AC6, AC7, AC8 | 001, 002 | Sonnet | ✅ DONE |
+
+**Abgeschlossen 2026-06-25:** 57 Tests grün, `tsc`/Build sauber, im Browser verifiziert
+(4-Spalten-Grid, Transpose +2 verschiebt alle Akkorde, Lyric-Suche filtert live). CSS-Politur:
+Akkord-Abstände in Akkord-only-Kacheln + volle Grid-Breite. Gemergt nach `main`.
 
 **Parallelisierung:** TICKET-001 und TICKET-002 sind unabhängig und können parallel laufen.
 TICKET-003 setzt beide voraus (braucht `transposeSong` und das Grid zum Manipulieren).

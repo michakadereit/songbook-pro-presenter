@@ -55,6 +55,16 @@
   `transposeSong`-Helfer / Grid & Kacheln / Controls). Design-Entscheidungen festgehalten:
   Transpose relativ −6…+6 auf keyOfset addiert; Suche case-insensitiv auf Lyrics.
 
+- EagleView umgesetzt: 001 ∥ 002 parallel (Sonnet/Opus, im Hintergrund), dann 003 (Sonnet,
+  Vordergrund). Hintergrund-Agenten haben hier KEIN Bash → konnten nicht selbst testen;
+  001-Agent ließ `transpose.ts` unfertig → vom Hauptagenten ergänzt. Lehre: Tickets mit
+  TDD-Verifikation als Vordergrund-Agenten starten.
+- Endstand: **57 Tests grün**, `tsc`/Build sauber. Browser-verifiziert: 4-Spalten-Grid,
+  Transpose +2 (A→B etc.), Lyric-Suche (soul→2, hosanna→0, leeren→5).
+- Zwei CSS-Fixes vom Hauptagenten: (1) Akkorde in Akkord-only-Kacheln per `gap` + Ausblenden
+  leerer Segmente lesbar trennen; (2) `#songs:has(.eagle-view)` voll breit → Grid mehrspaltig.
+- `feat/eagle-view` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
+
 ## Nächste Schritte
-- EagleView implementieren: TICKET-001 ∥ 002, dann 003 (orchestrieren wie zuvor).
-- Danach SlideView (Vollbild + Tastatur-Nav); `transposeSong` dort wiederverwenden.
+- SlideView (Vollbild, ein Song, Tastatur-Navigation); `transposeSong` wiederverwenden.
+- Optional: View-Umschalter (Slide ↔ Eagle) in der App-Shell.
