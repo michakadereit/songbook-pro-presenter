@@ -88,6 +88,17 @@
   Header mit/ohne `:`, akkordlose Songs, Nashville-Akkorde (`[6m]` nur Anzeige).
   `.xml` out of scope (jeder Song hat `.chopro`). Sample: 23 `.chopro` + 23 `.xml`.
 
+- OnSong-Import umgesetzt: 001 (Opus) → 002 → 003 (Sonnet), Vordergrund-Agenten, je verifiziert.
+  Endstand: **120 Tests grün**, `tsc`/Build sauber. Geteilter `chordLine.ts` (in .sbp- und
+  .chopro-Parser). Import-Schicht: `parseChordPro`, `parseChordProFolder`; Views unverändert.
+- Browser-verifiziert: Ordner `samples/onsong/` → „onsong (23 Songs)", Slide + Eagle (23 Kacheln,
+  DE/EN-Labels, `|`/`N.C.` erhalten); `.sbp`-Flow weiter ok.
+- Fix beim Browser-Test gefunden: alphanumerische Section-Labels („Verse 1a/1b") wurden als
+  Lyrics gerendert → Header-Regex auf optionalen Buchstaben-Suffix erweitert (+ Test).
+- Bekannte Grenze: Nashville-Zahlen werden angezeigt; chordsheetjs transponiert sie tatsächlich
+  (`6m`→`7m`) — nicht tonart-bewusst, daher musikalisch ggf. unpassend. Out of scope.
+- `feat/onsong-import` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
+
 ## Nächste Schritte
-- OnSong-Import implementieren: 001 (Opus) → 002 (Sonnet) → 003 (Sonnet), Vordergrund-Agenten.
-- Optional später: globalen Transpose/Suche aus Eagle in die Shell heben (für beide Views).
+- Optional: globalen Transpose/Suche aus Eagle in die Shell heben (für beide Views nutzbar).
+- Optional: Nashville-bewusste Transposition relativ zur `{key:}` (eigene Spec).

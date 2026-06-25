@@ -30,9 +30,13 @@ ohne die bestehende `.sbp`-Logik/Tests zu brechen.
 
 | Ticket | Titel | ACs | Abhängig von | Modell | Status |
 |--------|-------|-----|--------------|--------|--------|
-| TICKET-001 | `parseChordPro(text)` → Song | AC1–AC5 | — | Opus | TODO |
-| TICKET-002 | `parseChordProFolder(files)` → SongSet | AC6, AC7 | 001 | Sonnet | TODO |
-| TICKET-003 | UI Folder-Picker + Shell | AC8 | 002 | Sonnet | TODO |
+| TICKET-001 | `parseChordPro(text)` → Song | AC1–AC5 | — | Opus | ✅ DONE |
+| TICKET-002 | `parseChordProFolder(files)` → SongSet | AC6, AC7 | 001 | Sonnet | ✅ DONE |
+| TICKET-003 | UI Folder-Picker + Shell | AC8 | 002 | Sonnet | ✅ DONE |
+
+**Abgeschlossen 2026-06-25:** 120 Tests grün, `tsc`/Build sauber, im Browser verifiziert
+(Ordner → 23 Songs, Slide+Eagle; `.sbp`-Flow weiter ok). Geteilter `chordLine.ts`-Helfer.
+Fix: alphanumerische Section-Labels („Verse 1a"). Gemergt nach `main`.
 
 Sequenziell 001 → 002 → 003. Alle als **Vordergrund-Agenten** (TDD-Verifikation braucht
 Bash; Hintergrund-Agenten haben hier keinen Bash-Zugriff).
