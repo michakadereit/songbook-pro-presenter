@@ -31,3 +31,8 @@ body {
   margin-top: 1.5rem;
   color: #aaa;
 }
+
+/* SongRenderer hook rules (TICKET-002) — no visual design, just visibility contracts */
+.song--no-chords .seg__chord { display: none; }
+.song--no-lyrics .seg__lyric { display: none; }
+.seg__chord { font-size: calc(1em * var(--chord-ratio, 0.8)); }

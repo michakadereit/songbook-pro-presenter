@@ -146,6 +146,73 @@ describe('AC6 — chord-less lines', () => {
 });
 
 // -----------------------------------------------------------------------
+// AC3 — Chords hideable via showChords: false
+// -----------------------------------------------------------------------
+
+describe('AC3 — showChords: false hides chord elements', () => {
+  it('sets class song--no-chords on the root element when showChords is false', () => {
+    const el = renderSong(testSong, { ...defaultOptions, showChords: false });
+    expect(el.classList.contains('song--no-chords')).toBe(true);
+  });
+
+  it('does NOT set song--no-chords when showChords is true', () => {
+    const el = renderSong(testSong, defaultOptions);
+    expect(el.classList.contains('song--no-chords')).toBe(false);
+  });
+
+  it('lyric text is still fully present when showChords is false', () => {
+    const el = renderSong(testSong, { ...defaultOptions, showChords: false });
+    const lyricSpans = Array.from(el.querySelectorAll('.seg__lyric'));
+    const reconstructed = lyricSpans.map((s) => s.textContent).join('');
+    expect(reconstructed).toContain('Bless the Lord, O my soul,');
+  });
+});
+
+// -----------------------------------------------------------------------
+// AC4 — Lyrics hideable via showLyrics: false (Eagle-case)
+// -----------------------------------------------------------------------
+
+describe('AC4 — showLyrics: false hides lyric elements', () => {
+  it('sets class song--no-lyrics on the root element when showLyrics is false', () => {
+    const el = renderSong(testSong, { ...defaultOptions, showLyrics: false });
+    expect(el.classList.contains('song--no-lyrics')).toBe(true);
+  });
+
+  it('does NOT set song--no-lyrics when showLyrics is true', () => {
+    const el = renderSong(testSong, defaultOptions);
+    expect(el.classList.contains('song--no-lyrics')).toBe(false);
+  });
+
+  it('chord elements are still present when showLyrics is false', () => {
+    const el = renderSong(testSong, { showChords: true, showLyrics: false, chordRatio: 0.8 });
+    const chordSpans = Array.from(el.querySelectorAll('.seg__chord'));
+    const nonEmptyChords = chordSpans.filter((s) => s.textContent !== '');
+    expect(nonEmptyChords.length).toBeGreaterThan(0);
+  });
+});
+
+// -----------------------------------------------------------------------
+// AC5 — chordRatio sets --chord-ratio CSS custom property
+// -----------------------------------------------------------------------
+
+describe('AC5 — chordRatio sets --chord-ratio inline style', () => {
+  it('sets --chord-ratio to 0.7 on the root element when chordRatio is 0.7', () => {
+    const el = renderSong(testSong, { ...defaultOptions, chordRatio: 0.7 });
+    expect(el.style.getPropertyValue('--chord-ratio')).toBe('0.7');
+  });
+
+  it('sets --chord-ratio to 0.8 on the root element when chordRatio is 0.8', () => {
+    const el = renderSong(testSong, defaultOptions);
+    expect(el.style.getPropertyValue('--chord-ratio')).toBe('0.8');
+  });
+
+  it('sets --chord-ratio to 1.2 on the root element when chordRatio is 1.2', () => {
+    const el = renderSong(testSong, { ...defaultOptions, chordRatio: 1.2 });
+    expect(el.style.getPropertyValue('--chord-ratio')).toBe('1.2');
+  });
+});
+
+// -----------------------------------------------------------------------
 // AC7 — No raw ChordPro markup in output
 // -----------------------------------------------------------------------
 

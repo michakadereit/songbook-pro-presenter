@@ -93,22 +93,30 @@ function renderSegment(seg: Segment): HTMLElement {
  *     <div class="line">*          — one per SongLine
  *       <span class="seg">*        — segments (chord above lyric)
  *
- * NOTE: options (showChords / showLyrics / chordRatio) are intentionally
- * NOT evaluated here — that is TICKET-002 scope.
- *
  * Public CSS contract (consumed by TICKET-003):
- *   .song           — root article element
- *   .song__title    — <h2> with the song name
- *   .section        — <section> per SongSection
- *   .section__title — <h3> per section label (absent when title is "")
- *   .line           — <div> per SongLine
- *   .seg            — one chord+lyric column unit
- *   .seg__chord     — chord label
- *   .seg__lyric     — lyric text slice
+ *   .song              — root article element
+ *   .song--no-chords   — modifier: CSS hides .seg__chord via display:none
+ *   .song--no-lyrics   — modifier: CSS hides .seg__lyric via display:none
+ *   .song__title       — <h2> with the song name
+ *   .section           — <section> per SongSection
+ *   .section__title    — <h3> per section label (absent when title is "")
+ *   .line              — <div> per SongLine
+ *   .seg               — one chord+lyric column unit
+ *   .seg__chord        — chord label
+ *   .seg__lyric        — lyric text slice
  */
-export function renderSong(song: Song, _options: RenderOptions): HTMLElement {
+export function renderSong(song: Song, options: RenderOptions): HTMLElement {
   const article = document.createElement('article');
   article.className = 'song';
+
+  // Apply RenderOptions modifiers
+  if (!options.showChords) {
+    article.classList.add('song--no-chords');
+  }
+  if (!options.showLyrics) {
+    article.classList.add('song--no-lyrics');
+  }
+  article.style.setProperty('--chord-ratio', String(options.chordRatio));
 
   // Song title
   const h2 = document.createElement('h2');
