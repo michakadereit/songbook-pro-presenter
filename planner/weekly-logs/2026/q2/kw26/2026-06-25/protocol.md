@@ -23,7 +23,11 @@
 - `docs/specs/sbp-parser/spec.md` geschrieben — 9 ACs gegen die Sample-Datei.
   - Akkord-Positionen & Transposition (C→A, D/F#→B/D# bei keyOfset 9) gegen echte Daten verifiziert.
 
+- Rote Tests committet auf `feat/sbp-parser` (`src/parser.test.ts`, 9 ACs).
+- Exec Plan `docs/exec-plans/active/sbp-parser/` angelegt: README + 3 Tickets
+  (001 ZIP/JSON, 002 ChordPro-Parser, 003 Transposition), sequenziell, Modell **Sonnet**.
+
 ## Nächste Schritte
-- Tests aus den 9 ACs ableiten (rot) auf Feature-Branch `feat/sbp-parser`.
-- Parser implementieren bis grün (fflate + eigener Line-Parser + chordsheetjs für Transposition).
-- Danach Specs für SlideView / EagleView / SongRenderer (je eigene Spec bei Implementierung).
+- Parser implementieren entlang TICKET-001 → 002 → 003 auf `feat/sbp-parser` bis alle Tests grün.
+- Danach Branch nach `main` mergen, Plan nach `completed/` verschieben.
+- Später: eigene Specs für SlideView / EagleView / SongRenderer (vor deren Exec Plänen).
