@@ -161,4 +161,17 @@ describe('parseChordPro', () => {
       expect(song.name).toBe('');
     });
   });
+
+  // Section labels with an alphanumeric suffix (e.g. OnSong "Verse 1a:")
+  describe('alphanumeric section labels', () => {
+    it('recognises "Verse 1a:" / "Verse 1b:" as section headers, not lyrics', () => {
+      const song = parseChordPro('Verse 1a:\nYou are Alpha\nVerse 1b:\nYou are Omega');
+      const titles = song.sections.map((s) => s.title);
+      expect(titles).toContain('Verse 1a');
+      expect(titles).toContain('Verse 1b');
+      // The header line must not leak into the lyrics.
+      const lyrics = song.sections.flatMap((s) => s.lines.map((l) => l.lyrics));
+      expect(lyrics).not.toContain('Verse 1a:');
+    });
+  });
 });

@@ -12,8 +12,9 @@ const DIRECTIVE_RE = /^\{\s*([^:}]+?)\s*:\s*([\s\S]*?)\s*\}$/;
  * The whole line must consist only of the header (no further lyric text), which
  * keeps lyric lines that merely start with such a word from being misread.
  */
+// Label may be a number with an optional letter suffix, e.g. "1", "2", "1a", "1b".
 const SECTION_HEADER_RE =
-  /^(verse|chorus|bridge|intro|outro|pre[-\s]?chorus|prechorus|tag|ending|interlude|instrumental|misc|refrain|vers|strophe|pre|teil)(?:\s+([0-9]+))?\s*:?\s*$/i;
+  /^(verse|chorus|bridge|intro|outro|pre[-\s]?chorus|prechorus|tag|ending|interlude|instrumental|misc|refrain|vers|strophe|pre|teil)(?:\s+([0-9]+[a-z]?))?\s*:?\s*$/i;
 
 /** Canonical display titles for the recognised keywords. */
 const CANONICAL_TITLE: Record<string, string> = {
