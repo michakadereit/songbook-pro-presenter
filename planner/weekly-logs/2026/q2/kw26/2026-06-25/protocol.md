@@ -81,6 +81,13 @@
   `main.ts` nutzt jetzt `mountViewSwitcher`. Vollbild-CSS + Tab-Leiste.
 - `feat/slide-view` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
 
+- `.idea/` versehentlich via `git add -A` getrackt → ignoriert + untracked. Lehre: gezielt
+  stagen statt `-A`. `samples/onsong/` (46 Dateien) bewusst mit eingecheckt.
+- `docs/specs/onsong-import/spec.md` geschrieben (8 ACs) + Exec Plan `onsong-import`
+  (3 Tickets: ChordPro-Parser / Ordner-Loader / UI-Folder-Picker). Format-Eigenheiten:
+  Header mit/ohne `:`, akkordlose Songs, Nashville-Akkorde (`[6m]` nur Anzeige).
+  `.xml` out of scope (jeder Song hat `.chopro`). Sample: 23 `.chopro` + 23 `.xml`.
+
 ## Nächste Schritte
-- Optional: OnSong-`.chopro`-Ordner-Import (Spec gegen `samples/onsong/`, Import-Schicht).
-- Optional: globalen Transpose/Suche aus Eagle in die Shell heben (für beide Views nutzbar).
+- OnSong-Import implementieren: 001 (Opus) → 002 (Sonnet) → 003 (Sonnet), Vordergrund-Agenten.
+- Optional später: globalen Transpose/Suche aus Eagle in die Shell heben (für beide Views).
