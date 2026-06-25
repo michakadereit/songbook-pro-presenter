@@ -34,6 +34,14 @@
 - `feat/sbp-parser` nach `main` gemergt (`0c881dc`), Branch gelöscht.
 - Exec Plan `sbp-parser` → `docs/exec-plans/completed/` verschoben, Tickets DONE.
 
+- CSS-Recherche: modernes Design — Akkord-über-Silbe via **Segment-Stacking** (Flexbox,
+  `flex-direction: column` je Segment) statt Monospace; Tokens via `clamp()`, `light-dark()`,
+  Custom Property `--chord-ratio`.
+- Geklärt: **SongRenderer ist weder Slide- noch Eagle-View**, sondern die geteilte
+  Komponente, die beide Views nutzen (Eagle: `showLyrics:false`).
+- `docs/specs/song-renderer/spec.md` geschrieben (7 ACs) + Exec Plan `song-renderer`
+  (3 Tickets: Render-Logik, Optionen/Toggles, modernes CSS-Design).
+
 ## Nächste Schritte
-- Eigene Specs für SlideView / EagleView / SongRenderer schreiben (vor deren Exec Plänen).
-- Parser-Output an die Views anbinden (aktuell zeigt die UI nur eine Status-Zeile).
+- SongRenderer implementieren entlang TICKET-001 → 002 → 003 auf `feat/song-renderer` (TDD).
+- Danach Specs/Pläne für SlideView und EagleView (komponieren den SongRenderer).
