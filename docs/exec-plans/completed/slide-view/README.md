@@ -24,9 +24,13 @@ mit demselben geladenen `SongSet`. EagleView existiert bereits.
 
 | Ticket | Titel | ACs | Abhängig von | Modell | Status |
 |--------|-------|-----|--------------|--------|--------|
-| TICKET-001 | SlideView-Kern (Render + Navigation + Keyboard) | AC1–AC5 | — | Sonnet | TODO |
-| TICKET-002 | Vollbild-CSS-Design | visuell (stützt AC1/AC5) | 001 | Opus | TODO |
-| TICKET-003 | View-Umschalter (Shell) | AC6, AC7 | 001 | Sonnet | TODO |
+| TICKET-001 | SlideView-Kern (Render + Navigation + Keyboard) | AC1–AC5 | — | Sonnet | ✅ DONE |
+| TICKET-002 | Vollbild-CSS-Design | visuell (stützt AC1/AC5) | 001 | Opus | ✅ DONE |
+| TICKET-003 | View-Umschalter (Shell) | AC6, AC7 | 001 | Sonnet | ✅ DONE |
+
+**Abgeschlossen 2026-06-25:** 89 Tests grün, `tsc`/Build sauber, im Browser verifiziert
+(1/5→…→5/5, Klemmen, `Home`/`End`; Umschalter Slide↔Eagle ohne Reload; Dispose entfernt den
+Keyboard-Listener). Gemergt nach `main`.
 
 **Parallelisierung:** TICKET-002 und TICKET-003 sind unabhängig voneinander, beide setzen
 TICKET-001 voraus → nach 001 können 002 und 003 parallel laufen (002 als Vordergrund-

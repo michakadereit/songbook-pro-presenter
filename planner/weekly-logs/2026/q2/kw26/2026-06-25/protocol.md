@@ -73,6 +73,14 @@
   `.chopro`-Ordner via Import-Schicht, `.xml` weglassen. Als Backlog-Ticket erfasst:
   `planner/tickets/2026-06-25-onsong-import.md`.
 
+- SlideView umgesetzt: 001 (Sonnet) → 002 (Opus) → 003 (Sonnet), alle Vordergrund-Agenten,
+  nach jeder Phase verifiziert. Endstand: **89 Tests grün**, `tsc`/Build sauber.
+- Browser-verifiziert: Navigation 1/5↔5/5 mit Klemmen + Home/End; Umschalter Slide↔Eagle
+  ohne Reload; AC7 Dispose (ArrowRight wirkt in Eagle nicht mehr). Standard-View: Slide.
+- Neue Module: `src/views/SlideView.ts`, `src/views/viewSwitcher.ts` (testbare Shell-Funktion);
+  `main.ts` nutzt jetzt `mountViewSwitcher`. Vollbild-CSS + Tab-Leiste.
+- `feat/slide-view` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
+
 ## Nächste Schritte
-- SlideView implementieren: TICKET-001, dann 002 ∥ 003 (Vordergrund-Agenten wegen Bash/TDD).
-- Danach ggf. OnSong-`.chopro`-Import spec'en (Import-Schicht, Views unverändert).
+- Optional: OnSong-`.chopro`-Ordner-Import (Spec gegen `samples/onsong/`, Import-Schicht).
+- Optional: globalen Transpose/Suche aus Eagle in die Shell heben (für beide Views nutzbar).
