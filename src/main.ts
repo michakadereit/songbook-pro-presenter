@@ -21,6 +21,6 @@ input.addEventListener('change', async () => {
     const set = await parseSbp(file);
     status.textContent = `Geladen: ${set.name} (${set.songs.length} Songs)`;
   } catch (err) {
-    status.textContent = `Noch nicht implementiert: ${(err as Error).message}`;
+    status.textContent = `Fehler beim Laden: ${(err as Error).message}`;
   }
 });
