@@ -65,6 +65,14 @@
   leerer Segmente lesbar trennen; (2) `#songs:has(.eagle-view)` voll breit → Grid mehrspaltig.
 - `feat/eagle-view` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
 
+- `docs/specs/slide-view/spec.md` geschrieben (7 ACs, inkl. View-Umschalter) + Exec Plan
+  `slide-view` (3 Tickets: Kern+Keyboard / Vollbild-CSS / View-Umschalter). Umschalter
+  ist Pflichtbestandteil (User-Wunsch).
+- OnSong-Recherche (Sample `samples/onsong/`): jeder Song als `.chopro` UND `.xml`. `.chopro`
+  ist nah am .sbp-Content (niedrig–mittel), `.xml` positionsbasiert (hoch). Empfehlung:
+  `.chopro`-Ordner via Import-Schicht, `.xml` weglassen. Als Backlog-Ticket erfasst:
+  `planner/tickets/2026-06-25-onsong-import.md`.
+
 ## Nächste Schritte
-- SlideView (Vollbild, ein Song, Tastatur-Navigation); `transposeSong` wiederverwenden.
-- Optional: View-Umschalter (Slide ↔ Eagle) in der App-Shell.
+- SlideView implementieren: TICKET-001, dann 002 ∥ 003 (Vordergrund-Agenten wegen Bash/TDD).
+- Danach ggf. OnSong-`.chopro`-Import spec'en (Import-Schicht, Views unverändert).
