@@ -1,6 +1,7 @@
 import { unzipSync } from 'fflate';
 import { Chord as ChordSheetChord } from 'chordsheetjs';
-import type { Chord, Song, SongLine, SongSection, SongSet } from './types';
+import type { Song, SongSection, SongSet } from './types';
+import { parseChordProLine } from './chordLine';
 
 // Raw shapes from dataFile.txt JSON (internal, not exported)
 interface RawSong {
@@ -36,9 +37,6 @@ const SECTION_HEADER_RE = /^\{c:\s*(.+?)\s*\}$/i;
 
 /** Regex that matches any other ChordPro directive: {key: value} */
 const DIRECTIVE_RE = /^\{[^}]+\}$/;
-
-/** Regex that matches an inline chord token: [G], [D/F#], [Csus4] */
-const CHORD_TOKEN_RE = /\[([^\]]+)\]/g;
 
 /**
  * Parse a ChordPro `content` string into an array of SongSections.
@@ -88,40 +86,6 @@ function parseContent(content: string): SongSection[] {
   }
 
   return sections;
-}
-
-/**
- * Parse a single ChordPro line into a SongLine.
- *
- * Extracts `[Chord]` tokens: records each chord's symbol and its position
- * in the cleaned lyrics string (i.e. the offset after all previous chord
- * markers have been removed).
- */
-function parseChordProLine(line: string): SongLine {
-  const chords: Chord[] = [];
-  let lyrics = '';
-  let lastIndex = 0;
-  let offsetReduction = 0; // total characters removed by chord tokens so far
-
-  CHORD_TOKEN_RE.lastIndex = 0; // reset stateful global regex
-  let match: RegExpExecArray | null;
-
-  while ((match = CHORD_TOKEN_RE.exec(line)) !== null) {
-    // Append the text between the previous token and this one
-    lyrics += line.slice(lastIndex, match.index);
-    const symbol = match[1];
-    // Position in the cleaned lyrics = where we are now minus chars already removed
-    const position = match.index - offsetReduction;
-    chords.push({ symbol, position });
-    // Account for the token we're removing: "[symbol]" = symbol.length + 2
-    offsetReduction += match[0].length;
-    lastIndex = match.index + match[0].length;
-  }
-
-  // Append any trailing text after the last chord token
-  lyrics += line.slice(lastIndex);
-
-  return { lyrics, chords };
 }
 
 /**
