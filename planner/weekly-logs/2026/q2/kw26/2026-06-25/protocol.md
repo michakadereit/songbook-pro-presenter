@@ -27,7 +27,13 @@
 - Exec Plan `docs/exec-plans/active/sbp-parser/` angelegt: README + 3 Tickets
   (001 ZIP/JSON, 002 ChordPro-Parser, 003 Transposition), sequenziell, Modell **Sonnet**.
 
+- Parser via 3 Sonnet-Sub-Agenten orchestriert implementiert (TICKET-001 → 002 → 003),
+  nach jeder Phase verifiziert. Endstand: **10/10 Tests grün**, `tsc` sauber, Build OK.
+- Browser-Test (Playwright) bestanden: golden path „Geladen: CW | Lobpreis (5 Songs)",
+  Randfall (ungültige Datei) → saubere Fehlermeldung. Stub-Copy in `main.ts` korrigiert.
+- `feat/sbp-parser` nach `main` gemergt (`0c881dc`), Branch gelöscht.
+- Exec Plan `sbp-parser` → `docs/exec-plans/completed/` verschoben, Tickets DONE.
+
 ## Nächste Schritte
-- Parser implementieren entlang TICKET-001 → 002 → 003 auf `feat/sbp-parser` bis alle Tests grün.
-- Danach Branch nach `main` mergen, Plan nach `completed/` verschieben.
-- Später: eigene Specs für SlideView / EagleView / SongRenderer (vor deren Exec Plänen).
+- Eigene Specs für SlideView / EagleView / SongRenderer schreiben (vor deren Exec Plänen).
+- Parser-Output an die Views anbinden (aktuell zeigt die UI nur eine Status-Zeile).

@@ -1,0 +1,7 @@
+- main [ref=e3]:
+  - heading "Songbook Pro Presenter" [level=1] [ref=e4]
+  - paragraph [ref=e5]:
+    - text: Ziehe eine
+    - code [ref=e6]: .sbp
+    - text: "-Datei hierher oder wähle sie aus."
+  - button "Choose File" [ref=e7]

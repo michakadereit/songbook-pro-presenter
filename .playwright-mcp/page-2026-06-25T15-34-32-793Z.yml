@@ -1,0 +1,8 @@
+- main [ref=e3]:
+  - heading "Songbook Pro Presenter" [level=1] [ref=e4]
+  - paragraph [ref=e5]:
+    - text: Ziehe eine
+    - code [ref=e6]: .sbp
+    - text: "-Datei hierher oder wähle sie aus."
+  - button "Choose File" [active] [ref=e7]
+  - generic [ref=e8]: "Geladen: CW | Lobpreis (5 Songs)"

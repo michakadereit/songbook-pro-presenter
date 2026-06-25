@@ -23,9 +23,12 @@ Hybrid (siehe Spec): eigener Struktur-Parser + `chordsheetjs` nur für Transposi
 
 | Ticket | Titel | ACs | Abhängig von | Status |
 |--------|-------|-----|--------------|--------|
-| TICKET-001 | ZIP entpacken & JSON/Set laden | AC1–AC4, AC9 | — | TODO |
-| TICKET-002 | ChordPro-Zeilen-Parser | AC5, AC6, AC8 | 001 | TODO |
-| TICKET-003 | Akkord-Transposition | AC7 | 002 | TODO |
+| TICKET-001 | ZIP entpacken & JSON/Set laden | AC1–AC4, AC9 | — | ✅ DONE |
+| TICKET-002 | ChordPro-Zeilen-Parser | AC5, AC6, AC8 | 001 | ✅ DONE |
+| TICKET-003 | Akkord-Transposition | AC7 | 002 | ✅ DONE |
+
+**Abgeschlossen 2026-06-25:** alle 10 Tests grün, `tsc` sauber, im Browser verifiziert
+(golden path + Randfall), nach `main` gemergt (`0c881dc`).
 
 Tickets sind **sequenziell** (001 → 002 → 003): 002 baut auf der Song-Struktur aus 001
 auf, 003 transponiert die in 002 geparsten Akkorde. Keine Parallelisierung sinnvoll.
