@@ -139,6 +139,14 @@ body {
   display: block;
 }
 
+/* SlideView is a full-bleed presentation surface — escape the reading-width
+   wrapper so the slide can fill the viewport. */
+#songs:has(.slide-view) {
+  max-width: none;
+  padding: 0;
+  display: block;
+}
+
 /* ===========================================================================
    SongRenderer — public CSS contract (.song / .section / .line / .seg)
    =========================================================================== */
@@ -227,6 +235,57 @@ body {
 
 .song--no-lyrics .seg__lyric {
   display: none;
+}
+
+/* ===========================================================================
+   ViewSwitcher — tab bar toggling between Slide and Eagle views (TICKET-003)
+   =========================================================================== */
+
+.view-switcher {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.view-tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.view-tab {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.view-tab:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.view-tab--active,
+.view-tab[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+  font-weight: 600;
+}
+
+.view-container {
+  flex: 1;
 }
 
 /* ===========================================================================
@@ -383,4 +442,88 @@ body {
 .eagle-tile .seg__chord {
   font-size: 1em;
   font-weight: 600;
+}
+
+/* ===========================================================================
+   SlideView — full-screen presentation surface (TICKET-002)
+
+   One song per slide for beamer / stage use: calm, high-contrast, large type.
+   Fills the viewport with generous margins; the song is vertically centered.
+   Reuses the SongRenderer segment layout untouched (chords stay over syllables)
+   and only scales the type up by overriding --font-lyric in this context.
+   =========================================================================== */
+
+.slide-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: clamp(var(--space-5), 4vw, var(--space-7));
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* --- Header: dimmed position indicator + prominent title ------------------ */
+
+.slide-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-4);
+  margin-bottom: clamp(var(--space-5), 3vw, var(--space-7));
+  border-bottom: 1px solid var(--border);
+}
+
+.slide-position {
+  flex: none;
+  font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1.25rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+
+.slide-title {
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--fg);
+}
+
+/* --- Body: vertically centered, presentation-scale song ------------------- */
+
+.slide-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Bump the lyric size for at-a-distance legibility. The chord scales off the
+     lyric em via --chord-ratio, so the segment stacking stays intact. */
+  --font-lyric: clamp(1.5rem, 1rem + 2.6vw, 3rem);
+  --line-height-lyric: 1.5;
+}
+
+/* The slide-header already shows the title, so suppress the renderer's own. */
+.slide-view .song__title {
+  display: none;
+}
+
+/* The body is the card surface; the nested .song should be chrome-free so the
+   lyrics sit directly on the presentation background. */
+.slide-view .song {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* Generous section spacing for a calm, readable stage layout. */
+.slide-view .section {
+  margin-block: clamp(var(--space-4), 2vw, var(--space-6));
+}
+
+.slide-view .section__title {
+  margin-bottom: var(--space-3);
+  font-size: clamp(0.85rem, 0.78rem + 0.4vw, 1.05rem);
 }
