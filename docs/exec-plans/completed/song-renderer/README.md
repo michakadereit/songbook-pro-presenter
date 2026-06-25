@@ -31,9 +31,12 @@ responsiven Umbruch. Tokens via `clamp()`, `light-dark()`, `--chord-ratio`.
 
 | Ticket | Titel | ACs | Abhängig von | Modell | Status |
 |--------|-------|-----|--------------|--------|--------|
-| TICKET-001 | Render-Logik & DOM-Struktur | AC1, AC2, AC6, AC7 | — | Sonnet | TODO |
-| TICKET-002 | Render-Optionen (Toggles + Ratio) | AC3, AC4, AC5 | 001 | Sonnet | TODO |
-| TICKET-003 | Modernes CSS-Design & Layout | visuell (stützt AC2/AC6) | 002 | Opus | TODO |
+| TICKET-001 | Render-Logik & DOM-Struktur | AC1, AC2, AC6, AC7 | — | Sonnet | ✅ DONE |
+| TICKET-002 | Render-Optionen (Toggles + Ratio) | AC3, AC4, AC5 | 001 | Sonnet | ✅ DONE |
+| TICKET-003 | Modernes CSS-Design & Layout | visuell (stützt AC2/AC6) | 002 | Opus | ✅ DONE |
+
+**Abgeschlossen 2026-06-25:** 32 Tests grün, `tsc`/Build sauber, im Browser verifiziert
+(Akkorde exakt über Silben, Transposition A/B/D# sichtbar). Gemergt nach `main`.
 
 Sequenziell (001 → 002 → 003): 002 setzt die DOM-Struktur aus 001 voraus; 003 stylt die
 in 001/002 vergebenen Klassennamen.

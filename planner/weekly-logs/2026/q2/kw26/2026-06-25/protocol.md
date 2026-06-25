@@ -42,6 +42,15 @@
 - `docs/specs/song-renderer/spec.md` geschrieben (7 ACs) + Exec Plan `song-renderer`
   (3 Tickets: Render-Logik, Optionen/Toggles, modernes CSS-Design).
 
+- SongRenderer via Orchestrator + Sub-Agenten implementiert (001/002 Sonnet, 003 Opus),
+  nach jeder Phase verifiziert. Endstand: **32 Tests grün**, `tsc`/Build sauber.
+- Browser-Verifikation (Playwright): Akkorde sitzen exakt über den Silben, Transposition
+  sichtbar (A aus [C], B/D# aus [D/F#]); modernes light-dark-Design mit Tokens.
+- `main.ts` rendert geladene Songs als Harness (bis Views existieren).
+- `feat/song-renderer` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
+- Aufräumen: `.playwright-mcp/` und `.claude/agent-memory/` gitignored + untracked.
+
 ## Nächste Schritte
-- SongRenderer implementieren entlang TICKET-001 → 002 → 003 auf `feat/song-renderer` (TDD).
-- Danach Specs/Pläne für SlideView und EagleView (komponieren den SongRenderer).
+- Specs/Pläne für SlideView (Vollbild + Tastatur-Navigation) und EagleView (Grid, nur Akkorde).
+- Beide komponieren `renderSong`; main.ts-Harness durch echte View-Auswahl ersetzen.
+- Optional: Slider-UI für Akkorde/Lyrics-Toggle + `--chord-ratio` in der App-Shell.
