@@ -89,12 +89,40 @@ body {
   font-size: 0.9em;
 }
 
-#file-input {
+/* --- Loader inputs: two side-by-side (or stacked on narrow) file pickers --- */
+
+.loader-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+
+.loader-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  text-align: left;
+}
+
+.loader-label__text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+
+#file-input,
+#folder-input {
   cursor: pointer;
   color: var(--fg-muted);
 }
 
-#file-input::file-selector-button {
+#file-input::file-selector-button,
+#folder-input::file-selector-button {
   margin-right: var(--space-3);
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border);
@@ -106,7 +134,8 @@ body {
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-#file-input::file-selector-button:hover {
+#file-input::file-selector-button:hover,
+#folder-input::file-selector-button:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
