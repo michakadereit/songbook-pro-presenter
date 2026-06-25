@@ -50,7 +50,11 @@
 - `feat/song-renderer` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
 - Aufräumen: `.playwright-mcp/` und `.claude/agent-memory/` gitignored + untracked.
 
+- EagleView gewählt (User-Wunsch): Grid + globaler Transpose-Regler + Lyric-Suchfeld.
+- `docs/specs/eagle-view/spec.md` geschrieben (8 ACs) + Exec Plan `eagle-view` (3 Tickets:
+  `transposeSong`-Helfer / Grid & Kacheln / Controls). Design-Entscheidungen festgehalten:
+  Transpose relativ −6…+6 auf keyOfset addiert; Suche case-insensitiv auf Lyrics.
+
 ## Nächste Schritte
-- Specs/Pläne für SlideView (Vollbild + Tastatur-Navigation) und EagleView (Grid, nur Akkorde).
-- Beide komponieren `renderSong`; main.ts-Harness durch echte View-Auswahl ersetzen.
-- Optional: Slider-UI für Akkorde/Lyrics-Toggle + `--chord-ratio` in der App-Shell.
+- EagleView implementieren: TICKET-001 ∥ 002, dann 003 (orchestrieren wie zuvor).
+- Danach SlideView (Vollbild + Tastatur-Nav); `transposeSong` dort wiederverwenden.
