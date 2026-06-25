@@ -1,8 +1,47 @@
+/* ===========================================================================
+   Songbook Pro Presenter — modern CSS design (TICKET-003)
+
+   Design intent: live worship / stage use. High legibility, calm aesthetic,
+   automatic light/dark via color-scheme + light-dark(). Fluid typography in
+   rem (zoom-accessible, never px). Chord-over-syllable via segment stacking.
+   =========================================================================== */
+
 :root {
-  --bg: #111;
-  --fg: #f5f5f5;
-  --accent: #4f9dff;
-  font-family: system-ui, -apple-system, sans-serif;
+  color-scheme: light dark;
+
+  /* --- Color tokens (light, dark) ----------------------------------------- */
+  --bg:        light-dark(#fbfaf7, #0e1116);
+  --surface:   light-dark(#ffffff, #161b22);
+  --fg:        light-dark(#1a1d21, #eceff4);
+  --fg-muted:  light-dark(#6b7280, #9aa4b2);
+  --accent:    light-dark(#2563eb, #6aa6ff);
+  --chord:     light-dark(#1d4ed8, #7fb2ff);
+  --border:    light-dark(#e6e3dc, #232a33);
+
+  /* --- Fluid typography (rem, never px) ----------------------------------- */
+  --font-app-title:   clamp(1.5rem, 1.2rem + 1.6vw, 2.25rem);
+  --font-song-title:  clamp(1.25rem, 1.05rem + 1.1vw, 1.875rem);
+  --font-section:     clamp(0.8rem, 0.74rem + 0.35vw, 0.95rem);
+  --font-lyric:       clamp(1rem, 0.9rem + 1.2vw, 1.5rem);
+  --font-chord-base:  1em; /* chord scales off lyric via --chord-ratio */
+
+  /* --- Spacing scale ------------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* --- Other tokens -------------------------------------------------------- */
+  --chord-ratio: 0.8;
+  --radius: 0.75rem;
+  --line-height-lyric: 1.65;
+  --max-content: 48rem;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
 }
 
 * {
@@ -11,28 +50,173 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--fg);
-  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+/* ===========================================================================
+   App shell / dropzone
+   =========================================================================== */
+
 .dropzone {
-  max-width: 40rem;
+  max-width: var(--max-content);
   margin: 0 auto;
-  padding: 4rem 1.5rem;
+  padding: var(--space-7) var(--space-5) var(--space-5);
   text-align: center;
 }
 
 .dropzone h1 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-app-title);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+.dropzone p {
+  margin: 0 0 var(--space-5);
+  color: var(--fg-muted);
+}
+
+.dropzone code {
+  padding: 0.1em 0.4em;
+  border-radius: 0.4em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.9em;
+}
+
+#file-input {
+  cursor: pointer;
+  color: var(--fg-muted);
+}
+
+#file-input::file-selector-button {
+  margin-right: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+#file-input::file-selector-button:hover {
+  border-color: var(--accent);
   color: var(--accent);
 }
 
 #status {
-  margin-top: 1.5rem;
-  color: #aaa;
+  margin-top: var(--space-5);
+  color: var(--fg-muted);
+  font-size: 0.95rem;
+  white-space: pre-wrap;
 }
 
-/* SongRenderer hook rules (TICKET-002) — no visual design, just visibility contracts */
-.song--no-chords .seg__chord { display: none; }
-.song--no-lyrics .seg__lyric { display: none; }
-.seg__chord { font-size: calc(1em * var(--chord-ratio, 0.8)); }
+/* ===========================================================================
+   Songs container (temporary render harness)
+   =========================================================================== */
+
+#songs {
+  max-width: var(--max-content);
+  margin: 0 auto;
+  padding: 0 var(--space-5) var(--space-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ===========================================================================
+   SongRenderer — public CSS contract (.song / .section / .line / .seg)
+   =========================================================================== */
+
+.song {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-5) var(--space-5) var(--space-6);
+}
+
+.song__title {
+  margin: 0 0 var(--space-5);
+  font-size: var(--font-song-title);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+.section {
+  margin-block: var(--space-5);
+}
+
+.section:first-of-type {
+  margin-top: 0;
+}
+
+.section:last-of-type {
+  margin-bottom: 0;
+}
+
+.section__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-section);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+}
+
+/* --- Lines and segments: chord stacked directly above its syllable -------- */
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  font-size: var(--font-lyric);
+  line-height: var(--line-height-lyric);
+}
+
+/* Keep consecutive lines comfortably spaced without breaking flex layout. */
+.line + .line {
+  margin-top: var(--space-1);
+}
+
+.seg {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.seg__chord {
+  /* Chord size scales off the lyric em via the per-song --chord-ratio.
+     min-height reserves the chord row even when empty so lyrics share a
+     common baseline (chord-less segments stay aligned with chorded ones). */
+  font-size: calc(1em * var(--chord-ratio, 0.8));
+  min-height: 1em;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--chord);
+  white-space: pre;
+}
+
+.seg__lyric {
+  /* Preserve significant whitespace produced by the parser (e.g. trailing
+     spaces between syllables) so segments join into the exact lyric text. */
+  white-space: pre;
+}
+
+/* ===========================================================================
+   Visibility toggles (TICKET-002 hook contract)
+   =========================================================================== */
+
+.song--no-chords .seg__chord {
+  display: none;
+}
+
+.song--no-lyrics .seg__lyric {
+  display: none;
+}
