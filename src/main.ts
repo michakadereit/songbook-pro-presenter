@@ -1,5 +1,5 @@
 import { parseSbp } from './parser';
-import { renderSong } from './components/SongRenderer';
+import { mountEagleView } from './views/EagleView';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
@@ -24,13 +24,7 @@ input.addEventListener('change', async () => {
     const set = await parseSbp(file);
     status.textContent = `Geladen: ${set.name} (${set.songs.length} Songs)`;
 
-    // Temporary render harness until the Slide/Eagle views exist.
-    songs.replaceChildren();
-    for (const song of set.songs) {
-      songs.appendChild(
-        renderSong(song, { showChords: true, showLyrics: true, chordRatio: 0.8 }),
-      );
-    }
+    mountEagleView(songs, set);
   } catch (err) {
     status.textContent = `Fehler beim Laden: ${(err as Error).message}`;
     songs.replaceChildren();
