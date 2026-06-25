@@ -131,6 +131,14 @@ body {
   gap: var(--space-6);
 }
 
+/* EagleView manages its own (wider) width — escape the reading-width wrapper
+   so the overview grid can use multiple columns. */
+#songs:has(.eagle-view) {
+  max-width: none;
+  padding: 0;
+  display: block;
+}
+
 /* ===========================================================================
    SongRenderer — public CSS contract (.song / .section / .line / .seg)
    =========================================================================== */
@@ -237,11 +245,71 @@ body {
 }
 
 .eagle-controls {
-  /* Placeholder toolbar — populated in TICKET-003. Reserves no space when empty. */
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
   align-items: center;
+  padding: var(--space-3) 0 var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Sticky toolbar so controls stay reachable while scrolling the grid. */
+.eagle-view > .eagle-controls {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  padding-block: var(--space-3);
+  margin-bottom: 0;
+}
+
+/* Transpose slider group */
+.transpose-slider {
+  width: clamp(6rem, 20vw, 12rem);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.transpose-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding: 0.1em var(--space-2);
+  border-radius: calc(var(--radius) * 0.5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+/* Search field */
+.eagle-search {
+  flex: 1;
+  min-width: 10rem;
+  max-width: 22rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.eagle-search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.eagle-search::placeholder {
+  color: var(--fg-muted);
 }
 
 .eagle-controls:empty {
@@ -301,11 +369,18 @@ body {
 .eagle-tile .line {
   font-size: var(--font-section);
   line-height: 1.5;
+  /* Separate the chords into a readable progression (lyric slices that used to
+     provide spacing are hidden in chords-only mode). */
+  gap: 0.6em;
+}
+
+/* Chords-only: drop the empty, lyric-only segments so chords don't bunch up
+   ("Bless the" segment carries no chord and would otherwise add dead space). */
+.eagle-tile .seg:has(> .seg__chord:empty) {
+  display: none;
 }
 
 .eagle-tile .seg__chord {
-  /* In chords-only mode lyric slices are hidden; render chords at full size
-     and keep them comfortably spaced so the progression reads cleanly. */
   font-size: 1em;
   font-weight: 600;
 }
