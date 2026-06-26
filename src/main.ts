@@ -4,6 +4,7 @@ import { mountViewSwitcher } from './views/viewSwitcher';
 import { folderNameFromFiles, markSetLoaded } from './shellHelpers';
 import { nextTheme, applyTheme, loadTheme } from './theme';
 import { toggleFullscreen } from './fullscreen';
+import { createListenerPanel } from './views/ListenerPanel';
 import type { SongSet } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -77,6 +78,13 @@ fullscreenBtn.addEventListener('click', () => {
 });
 
 document.addEventListener('fullscreenchange', updateFullscreenLabel);
+
+// ---------------------------------------------------------------------------
+// Listener panel — live audio detection sidecar (additive, view-agnostic)
+// ---------------------------------------------------------------------------
+
+const listenerPanel = createListenerPanel();
+document.body.append(listenerPanel.el);
 
 const fileInput = app.querySelector<HTMLInputElement>('#file-input')!;
 const folderInput = app.querySelector<HTMLInputElement>('#folder-input')!;
