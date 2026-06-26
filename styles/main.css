@@ -368,9 +368,12 @@ body.has-set .uploader {
   font-weight: 600;
 }
 
-/* Global controls: search + transpose — right side of .view-tabs bar */
+/* Global controls: search + transpose — right side of .view-tabs bar.
+   padding-right reserves space for the fixed .shell-bar (Theme + Fullscreen)
+   which overlays the sticky tab bar at z-index 30. Measured at ~228 px. */
 .view-tabs {
-  flex-wrap: wrap; /* allows .global-controls to drop below on narrow screens */
+  flex-wrap: wrap;
+  padding-right: 15rem;
 }
 
 .global-controls {
