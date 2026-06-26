@@ -15,7 +15,8 @@
 import { startMic, type MicHandle } from '../audio/micCapture';
 import { readLevel, rmsToBarRatio } from '../audio/levelMeter';
 import { createPitchTracker } from '../audio/pitchDetector';
-import { hzToNote, estimateKey, NOTE_NAMES } from '../audio/noteMath';
+import { hzToNote, estimateKey, estimateChord, NOTE_NAMES } from '../audio/noteMath';
+import { extractChroma, smoothChroma } from '../audio/chroma';
 
 export interface ListenerPanel {
   /** Root element to mount into the shell. */
@@ -36,13 +37,21 @@ const TOGGLE_LABEL_IDLE = 'Mikro aktivieren';
 const TOGGLE_LABEL_ACTIVE = 'Mikro aktiv ●';
 
 /** Build a single labelled readout field; returns its value element. */
-function buildReadout(parent: HTMLElement, label: string, field: string): HTMLElement {
+function buildReadout(parent: HTMLElement, label: string, field: string, badge?: string): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'listener-readout';
 
   const labelEl = document.createElement('span');
   labelEl.className = 'listener-readout__label';
   labelEl.textContent = label;
+
+  if (badge) {
+    const badgeEl = document.createElement('span');
+    badgeEl.className = 'listener-readout__badge';
+    badgeEl.textContent = badge;
+    badgeEl.setAttribute('title', 'experimentell');
+    labelEl.append(badgeEl);
+  }
 
   const valueEl = document.createElement('span');
   valueEl.className = 'listener-readout__value';
@@ -81,7 +90,7 @@ export function createListenerPanel(): ListenerPanel {
   readouts.className = 'listener-readouts';
   const noteEl = buildReadout(readouts, 'Note', 'note');
   const keyEl = buildReadout(readouts, 'Tonart', 'key');
-  const chordEl = buildReadout(readouts, 'Akkord', 'chord');
+  const chordEl = buildReadout(readouts, 'Akkord', 'chord', '⚗');
 
   el.append(toggle, bar, readouts);
 
@@ -92,10 +101,15 @@ export function createListenerPanel(): ListenerPanel {
 
   // Pitch / key tracking
   const pitchTracker = createPitchTracker();
-  const chroma = new Array<number>(12).fill(0);
+  const pitchChromaHist = new Array<number>(12).fill(0);
   let lastKeyLabel = '';
   let lastKeyUpdateMs = 0;
   const KEY_UPDATE_INTERVAL_MS = 500;
+
+  // Frequency-domain chroma + chord detection (experimental)
+  let smoothedChroma = new Array<number>(12).fill(0);
+  let lastChordUpdateMs = 0;
+  const CHORD_UPDATE_INTERVAL_MS = 750;
 
   function reflectState(): void {
     toggle.setAttribute('aria-pressed', active ? 'true' : 'false');
@@ -131,17 +145,17 @@ export function createListenerPanel(): ListenerPanel {
             : '';
           noteEl.textContent = `${noteResult.name}${noteResult.octave}${centsStr}`;
 
-          // Accumulate chroma for key estimation (pitch-class histogram)
+          // Accumulate pitch-class histogram for key estimation
           const pcIndex = NOTE_NAMES.indexOf(noteResult.name as typeof NOTE_NAMES[number]);
-          if (pcIndex >= 0) chroma[pcIndex] += 1;
+          if (pcIndex >= 0) pitchChromaHist[pcIndex] += 1;
 
           // Estimate key every KEY_UPDATE_INTERVAL_MS
           const now = performance.now();
           if (now - lastKeyUpdateMs >= KEY_UPDATE_INTERVAL_MS) {
             lastKeyUpdateMs = now;
-            const total = chroma.reduce((s, v) => s + v, 0);
+            const total = pitchChromaHist.reduce((s, v) => s + v, 0);
             if (total > 0) {
-              const normalized = chroma.map((v) => v / total);
+              const normalized = pitchChromaHist.map((v) => v / total);
               const keyResult = estimateKey(normalized);
               const label = keyResult
                 ? `${keyResult.tonic}-${keyResult.mode === 'major' ? 'Dur' : 'Moll'}`
@@ -158,6 +172,23 @@ export function createListenerPanel(): ListenerPanel {
       }
     } catch {
       // Pitch detection unavailable (e.g. stub analyser in tests) — keep readout as-is
+    }
+
+    // Chroma extraction + chord estimation (experimental, frequency-domain)
+    try {
+      const rawChroma = extractChroma(handle.analyser, handle.context.sampleRate);
+      smoothedChroma = smoothChroma(smoothedChroma, rawChroma);
+
+      const now = performance.now();
+      if (now - lastChordUpdateMs >= CHORD_UPDATE_INTERVAL_MS) {
+        lastChordUpdateMs = now;
+        const chordResult = estimateChord(smoothedChroma);
+        chordEl.textContent = chordResult
+          ? `${chordResult.root}${chordResult.quality === 'major' ? '-Dur' : 'm'}`
+          : EMPTY;
+      }
+    } catch {
+      // Chroma extraction unavailable — keep readout as-is
     }
 
     rafId = requestAnimationFrame(loop);
@@ -190,10 +221,13 @@ export function createListenerPanel(): ListenerPanel {
     handle = null;
     setLevel(0);
     clearReadouts();
-    // Reset chroma accumulator and key state
-    chroma.fill(0);
+    // Reset pitch-class histogram and key state
+    pitchChromaHist.fill(0);
     lastKeyLabel = '';
     lastKeyUpdateMs = 0;
+    // Reset smoothed chroma and chord state
+    smoothedChroma = new Array<number>(12).fill(0);
+    lastChordUpdateMs = 0;
     reflectState();
   }
 

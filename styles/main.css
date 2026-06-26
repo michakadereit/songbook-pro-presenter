@@ -922,3 +922,13 @@ body.has-set .uploader {
   color: var(--fg);
   font-variant-numeric: tabular-nums;
 }
+
+/* Experimental badge shown next to the Akkord label */
+.listener-readout__badge {
+  display: inline-block;
+  margin-left: var(--space-1);
+  font-size: 0.65rem;
+  color: var(--fg-muted);
+  opacity: 0.7;
+  cursor: default;
+}
