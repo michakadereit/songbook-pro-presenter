@@ -15,6 +15,16 @@
   in `SlideView.ts`. Renderer/Parser/Eagle/Switcher bleiben unangetastet.
 - Theme via `color-scheme` an `:root` (nutzt bestehendes `light-dark()`), persistent in localStorage.
 
+- Presentation-UX umgesetzt: 001 → 002 → 003 → 004 (Sonnet, Vordergrund), je verifiziert.
+  Endstand: **163 Tests grün**, `tsc`/Build sauber.
+- Browser-verifiziert: Upload zentriert (vorher) → ausgeblendet (nachher, `body.has-set`);
+  Theme Auto→Hell→Dunkel→Auto inkl. `colorScheme` + localStorage; Schrift-Slider 150 % setzt
+  `--slide-font-scale: 1.5` (Akkorde skalieren mit); Slide-Suche „great"→„1/2", `→` klemmt
+  „2/2", kein Treffer→„0/0"+„Keine Treffer", Tastatur-Guard ok; View-Umschalter intakt.
+- Neue Module: `theme.ts`, `fullscreen.ts`; jsdom-`localStorage`-Mock via `src/test-setup.ts`
+  (+ `vite.config.ts` setupFiles). SlideView in Controls (einmal) + Body (re-render) getrennt.
+- `feat/presentation-ux` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
+
 ## Nächste Schritte
-- Implementieren: 001 → 002 → 003 → 004 (Vordergrund-Agenten, Sonnet), je verifiziert.
-- Browser-Verifikation am Ende, dann Merge + Plan → completed.
+- Optional: echtes Fullscreen am Gerät prüfen (headless blockiert); Tastatur-Shortcut dafür.
+- Optional: globalen Transpose/Suche in die Shell heben; Schrift-Slider auch für Eagle.

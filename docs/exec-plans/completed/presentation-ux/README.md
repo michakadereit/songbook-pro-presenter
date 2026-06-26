@@ -25,10 +25,14 @@ der Steuerleisten — bei Bedarf, nicht zwingend.
 
 | Ticket | Titel | ACs | Abhängig von | Modell | Status |
 |--------|-------|-----|--------------|--------|--------|
-| TICKET-001 | Upload-UX (zentriert → versteckt) | AC1, AC2 | — | Sonnet | TODO |
-| TICKET-002 | Theme-Umschalter + Vollbild-Button | AC3, AC4, AC5 | 001 | Sonnet | TODO |
-| TICKET-003 | SlideView Schriftgrößen-Regler | AC6 | — | Sonnet | TODO |
-| TICKET-004 | SlideView Lyric-Suche + Tastatur-Guard | AC7–AC11 | 003 | Sonnet | TODO |
+| TICKET-001 | Upload-UX (zentriert → versteckt) | AC1, AC2 | — | Sonnet | ✅ DONE |
+| TICKET-002 | Theme-Umschalter + Vollbild-Button | AC3, AC4, AC5 | 001 | Sonnet | ✅ DONE |
+| TICKET-003 | SlideView Schriftgrößen-Regler | AC6 | — | Sonnet | ✅ DONE |
+| TICKET-004 | SlideView Lyric-Suche + Tastatur-Guard | AC7–AC11 | 003 | Sonnet | ✅ DONE |
+
+**Abgeschlossen 2026-06-26:** 163 Tests grün, `tsc`/Build sauber, im Browser verifiziert
+(Upload zentriert→versteckt, Theme Auto/Hell/Dunkel + persistent, Schrift-Slider 150 %→Akkorde
+mit, Slide-Suche „great"→1/2 + „0/0"-Fall + Tastatur-Guard). Gemergt nach `main`.
 
 **Reihenfolge:** Sequenziell 001 → 002 → 003 → 004. 001/002 teilen `main.ts`, 003/004 teilen
 `SlideView.ts`; alle teilen `styles/main.css` → sequenziell vermeidet Merge-Konflikte. Alle
