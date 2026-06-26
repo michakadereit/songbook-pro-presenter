@@ -14,6 +14,8 @@
 
 import { startMic, type MicHandle } from '../audio/micCapture';
 import { readLevel, rmsToBarRatio } from '../audio/levelMeter';
+import { createPitchTracker } from '../audio/pitchDetector';
+import { hzToNote, estimateKey, NOTE_NAMES } from '../audio/noteMath';
 
 export interface ListenerPanel {
   /** Root element to mount into the shell. */
@@ -88,6 +90,13 @@ export function createListenerPanel(): ListenerPanel {
   let handle: MicHandle | null = null;
   let rafId = 0;
 
+  // Pitch / key tracking
+  const pitchTracker = createPitchTracker();
+  const chroma = new Array<number>(12).fill(0);
+  let lastKeyLabel = '';
+  let lastKeyUpdateMs = 0;
+  const KEY_UPDATE_INTERVAL_MS = 500;
+
   function reflectState(): void {
     toggle.setAttribute('aria-pressed', active ? 'true' : 'false');
     toggle.textContent = active ? TOGGLE_LABEL_ACTIVE : TOGGLE_LABEL_IDLE;
@@ -106,8 +115,51 @@ export function createListenerPanel(): ListenerPanel {
 
   function loop(): void {
     if (!active || !handle) return;
+
     const level = readLevel(handle.analyser);
     setLevel(rmsToBarRatio(level));
+
+    // Pitch detection — guarded; analyser may lack getFloatTimeDomainData in tests
+    try {
+      const pitch = pitchTracker.process(handle.analyser, handle.context.sampleRate);
+      if (pitch !== null) {
+        const noteResult = hzToNote(pitch.hz);
+        if (noteResult) {
+          // Format note string: "A4" or "A4 +5¢"
+          const centsStr = noteResult.cents !== 0
+            ? ` ${noteResult.cents > 0 ? '+' : ''}${noteResult.cents}¢`
+            : '';
+          noteEl.textContent = `${noteResult.name}${noteResult.octave}${centsStr}`;
+
+          // Accumulate chroma for key estimation (pitch-class histogram)
+          const pcIndex = NOTE_NAMES.indexOf(noteResult.name as typeof NOTE_NAMES[number]);
+          if (pcIndex >= 0) chroma[pcIndex] += 1;
+
+          // Estimate key every KEY_UPDATE_INTERVAL_MS
+          const now = performance.now();
+          if (now - lastKeyUpdateMs >= KEY_UPDATE_INTERVAL_MS) {
+            lastKeyUpdateMs = now;
+            const total = chroma.reduce((s, v) => s + v, 0);
+            if (total > 0) {
+              const normalized = chroma.map((v) => v / total);
+              const keyResult = estimateKey(normalized);
+              const label = keyResult
+                ? `${keyResult.tonic}-${keyResult.mode === 'major' ? 'Dur' : 'Moll'}`
+                : '—';
+              if (label !== lastKeyLabel) {
+                lastKeyLabel = label;
+                keyEl.textContent = label;
+              }
+            }
+          }
+        }
+      } else {
+        noteEl.textContent = EMPTY;
+      }
+    } catch {
+      // Pitch detection unavailable (e.g. stub analyser in tests) — keep readout as-is
+    }
+
     rafId = requestAnimationFrame(loop);
   }
 
@@ -138,6 +190,10 @@ export function createListenerPanel(): ListenerPanel {
     handle = null;
     setLevel(0);
     clearReadouts();
+    // Reset chroma accumulator and key state
+    chroma.fill(0);
+    lastKeyLabel = '';
+    lastKeyUpdateMs = 0;
     reflectState();
   }
 

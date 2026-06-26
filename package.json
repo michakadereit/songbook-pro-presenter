@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "chordsheetjs": "^15.5.1",
-    "fflate": "^0.8.3"
+    "fflate": "^0.8.3",
+    "pitchy": "^4.1.0"
   }
 }
