@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { mountEagleView } from './EagleView';
+import type { EagleViewHandle } from './EagleView';
 import type { SongSet, Song } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -84,7 +85,7 @@ describe('mountEagleView — AC1: grid with chord-only tiles', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Fixtures for AC4–AC8: two songs with distinct chords and distinct lyrics.
+// Fixtures for handle API tests: two songs with distinct chords and lyrics.
 //
 //   songA: chord 'A', lyrics "hallelujah praise"  → unique word "hallelujah"
 //   songB: chord 'E', lyrics "glory forever"      → unique word "glory"
@@ -133,102 +134,140 @@ const controlsSet: SongSet = {
   songs: [songA, songB],
 };
 
-// Helper: dispatch an 'input' event on an element (simulates user interaction).
-function triggerInput(el: HTMLElement | null): void {
-  if (!el) throw new Error('Element is null');
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
 // ---------------------------------------------------------------------------
-// AC4 — Transpose-Regler wirkt global
+// TICKET-002 ACs — handle API and no internal controls DOM
 // ---------------------------------------------------------------------------
 
-describe('mountEagleView — AC4: transpose slider shifts all tiles globally', () => {
+describe('mountEagleView — TICKET-002: handle API', () => {
   let root: HTMLElement;
+  let handle: EagleViewHandle;
 
   beforeEach(() => {
     root = document.createElement('div');
-    mountEagleView(root, controlsSet);
+    handle = mountEagleView(root, controlsSet);
   });
 
-  it('renders a range input inside .eagle-controls', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]');
-    expect(slider).not.toBeNull();
+  // AC1: mountEagleView returns a handle with setQuery and setTranspose
+  it('returns a handle object with setQuery and setTranspose', () => {
+    expect(typeof handle.setQuery).toBe('function');
+    expect(typeof handle.setTranspose).toBe('function');
   });
 
-  it('slider has min=-6, max=6, step=1, value=0 by default', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]')!;
-    expect(slider.min).toBe('-6');
-    expect(slider.max).toBe('6');
-    expect(slider.step).toBe('1');
-    expect(slider.value).toBe('0');
+  // AC5: no .eagle-controls element in the DOM after mount
+  it('does not render an .eagle-controls element', () => {
+    expect(root.querySelector('.eagle-controls')).toBeNull();
   });
 
-  it('shows a visible offset label with text "0" initially', () => {
-    // The offset display element should exist and start at "0"
-    const display = root.querySelector<HTMLElement>('.eagle-controls .transpose-value');
-    expect(display).not.toBeNull();
-    expect(display!.textContent).toBe('0');
+  // AC2: opts.query applied on initial render
+  it('opts.query filters tiles immediately on mount (no-match tiles display:none)', () => {
+    const filteredRoot = document.createElement('div');
+    mountEagleView(filteredRoot, controlsSet, { query: 'hallelujah' });
+
+    const tiles = filteredRoot.querySelectorAll<HTMLElement>('.eagle-tile');
+    // songA has 'hallelujah' → visible
+    expect(tiles[0].style.display).not.toBe('none');
+    // songB has 'glory forever' → hidden
+    expect(tiles[1].style.display).toBe('none');
   });
 
-  it('after setting slider to +2 and dispatching input, tiles show B instead of A', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]')!;
-    slider.value = '2';
-    triggerInput(slider);
+  // AC2 edge case: no tiles hidden when query matches none of the songs (all hidden)
+  it('opts.query="bless" hides all tiles when no song contains "bless"', () => {
+    const filteredRoot = document.createElement('div');
+    mountEagleView(filteredRoot, controlsSet, { query: 'bless' });
 
-    // songA had chord 'A' → after +2 semitones should be 'B'
+    const tiles = filteredRoot.querySelectorAll<HTMLElement>('.eagle-tile');
+    expect(tiles[0].style.display).toBe('none');
+    expect(tiles[1].style.display).toBe('none');
+  });
+
+  // AC3: handle.setQuery re-applies filter
+  it('handle.setQuery("glory") hides songA and shows songB', () => {
+    handle.setQuery('glory');
+
+    const tiles = root.querySelectorAll<HTMLElement>('.eagle-tile');
+    // songA has 'hallelujah praise' → hidden
+    expect(tiles[0].style.display).toBe('none');
+    // songB has 'glory forever' → visible
+    expect(tiles[1].style.display).not.toBe('none');
+  });
+
+  it('handle.setQuery("") after filtering shows all tiles again', () => {
+    handle.setQuery('hallelujah');
+    handle.setQuery('');
+
+    const tiles = root.querySelectorAll<HTMLElement>('.eagle-tile');
+    for (const tile of tiles) {
+      expect(tile.style.display).not.toBe('none');
+    }
+  });
+
+  // AC4: handle.setTranspose changes chord text in DOM
+  it('handle.setTranspose(2) changes chord A to B in songA tile', () => {
+    handle.setTranspose(2);
+
     const chordsInAlpha = [...root.querySelectorAll('.eagle-tile')[0].querySelectorAll('.seg__chord')]
       .map((el) => el.textContent);
     expect(chordsInAlpha).toContain('B');
     expect(chordsInAlpha).not.toContain('A');
   });
 
-  it('after +2 transpose, offset display shows "+2"', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]')!;
-    slider.value = '2';
-    triggerInput(slider);
+  it('handle.setTranspose(0) preserves original chord symbols', () => {
+    handle.setTranspose(2);
+    handle.setTranspose(0);
 
-    const display = root.querySelector<HTMLElement>('.eagle-controls .transpose-value')!;
-    expect(display.textContent).toBe('+2');
-  });
-
-  it('after -3 transpose, offset display shows "-3"', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]')!;
-    slider.value = '-3';
-    triggerInput(slider);
-
-    const display = root.querySelector<HTMLElement>('.eagle-controls .transpose-value')!;
-    expect(display.textContent).toBe('-3');
+    const chordsInAlpha = [...root.querySelectorAll('.eagle-tile')[0].querySelectorAll('.seg__chord')]
+      .map((el) => el.textContent);
+    expect(chordsInAlpha).toContain('A');
+    expect(chordsInAlpha).not.toContain('B');
   });
 });
 
 // ---------------------------------------------------------------------------
-// AC5 — Offset 0 = Ausgangszustand
+// AC4 — Transpose shifts all tiles globally (via handle)
+// ---------------------------------------------------------------------------
+
+describe('mountEagleView — AC4: transpose shifts all tiles globally', () => {
+  let root: HTMLElement;
+  let handle: EagleViewHandle;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    handle = mountEagleView(root, controlsSet);
+  });
+
+  it('after setTranspose(2), songA tile shows B instead of A', () => {
+    handle.setTranspose(2);
+
+    const chordsInAlpha = [...root.querySelectorAll('.eagle-tile')[0].querySelectorAll('.seg__chord')]
+      .map((el) => el.textContent);
+    expect(chordsInAlpha).toContain('B');
+    expect(chordsInAlpha).not.toContain('A');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC5 — Offset 0 = original chord symbols (via handle)
 // ---------------------------------------------------------------------------
 
 describe('mountEagleView — AC5: offset 0 preserves original chord symbols', () => {
   let root: HTMLElement;
+  let handle: EagleViewHandle;
 
   beforeEach(() => {
     root = document.createElement('div');
-    mountEagleView(root, controlsSet);
+    handle = mountEagleView(root, controlsSet);
   });
 
-  it('at slider value 0 songA tile still shows "A"', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]')!;
-    // Explicitly set to 0 and dispatch to confirm no drift
-    slider.value = '0';
-    triggerInput(slider);
+  it('at transpose 0 songA tile still shows "A"', () => {
+    handle.setTranspose(0);
 
     const chordsInAlpha = [...root.querySelectorAll('.eagle-tile')[0].querySelectorAll('.seg__chord')]
       .map((el) => el.textContent);
     expect(chordsInAlpha).toContain('A');
   });
 
-  it('at slider value 0 songB tile still shows "E"', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]')!;
-    slider.value = '0';
-    triggerInput(slider);
+  it('at transpose 0 songB tile still shows "E"', () => {
+    handle.setTranspose(0);
 
     const chordsInBeta = [...root.querySelectorAll('.eagle-tile')[1].querySelectorAll('.seg__chord')]
       .map((el) => el.textContent);
@@ -237,38 +276,28 @@ describe('mountEagleView — AC5: offset 0 preserves original chord symbols', ()
 });
 
 // ---------------------------------------------------------------------------
-// AC6 — Suche filtert nach Lyrics
+// AC6 — Search filters tiles by lyric content (via handle)
 // ---------------------------------------------------------------------------
 
 describe('mountEagleView — AC6: search filters tiles by lyric content', () => {
   let root: HTMLElement;
+  let handle: EagleViewHandle;
 
   beforeEach(() => {
     root = document.createElement('div');
-    mountEagleView(root, controlsSet);
+    handle = mountEagleView(root, controlsSet);
   });
 
-  it('renders a search input inside .eagle-controls', () => {
-    const search = root.querySelector<HTMLInputElement>('.eagle-controls input[type="search"]');
-    expect(search).not.toBeNull();
-  });
-
-  it('searching "hallelujah" keeps songA tile visible and hides songB tile', () => {
-    const search = root.querySelector<HTMLInputElement>('.eagle-controls input[type="search"]')!;
-    search.value = 'hallelujah';
-    triggerInput(search);
+  it('setQuery("hallelujah") keeps songA tile visible and hides songB tile', () => {
+    handle.setQuery('hallelujah');
 
     const tiles = root.querySelectorAll<HTMLElement>('.eagle-tile');
-    // tile[0] = songA (has "hallelujah") → visible
     expect(tiles[0].style.display).not.toBe('none');
-    // tile[1] = songB (has "glory") → hidden
     expect(tiles[1].style.display).toBe('none');
   });
 
-  it('search is case-insensitive: "HALLELUJAH" still matches songA', () => {
-    const search = root.querySelector<HTMLInputElement>('.eagle-controls input[type="search"]')!;
-    search.value = 'HALLELUJAH';
-    triggerInput(search);
+  it('search is case-insensitive: setQuery("HALLELUJAH") still matches songA', () => {
+    handle.setQuery('HALLELUJAH');
 
     const tiles = root.querySelectorAll<HTMLElement>('.eagle-tile');
     expect(tiles[0].style.display).not.toBe('none');
@@ -277,27 +306,21 @@ describe('mountEagleView — AC6: search filters tiles by lyric content', () => 
 });
 
 // ---------------------------------------------------------------------------
-// AC7 — Suche zurücksetzen
+// AC7 — Clearing search shows all tiles again (via handle)
 // ---------------------------------------------------------------------------
 
 describe('mountEagleView — AC7: clearing search shows all tiles again', () => {
   let root: HTMLElement;
+  let handle: EagleViewHandle;
 
   beforeEach(() => {
     root = document.createElement('div');
-    mountEagleView(root, controlsSet);
+    handle = mountEagleView(root, controlsSet);
   });
 
   it('after filtering then clearing, all tiles are visible', () => {
-    const search = root.querySelector<HTMLInputElement>('.eagle-controls input[type="search"]')!;
-
-    // First filter
-    search.value = 'hallelujah';
-    triggerInput(search);
-
-    // Then clear
-    search.value = '';
-    triggerInput(search);
+    handle.setQuery('hallelujah');
+    handle.setQuery('');
 
     const tiles = root.querySelectorAll<HTMLElement>('.eagle-tile');
     for (const tile of tiles) {
@@ -307,26 +330,23 @@ describe('mountEagleView — AC7: clearing search shows all tiles again', () => 
 });
 
 // ---------------------------------------------------------------------------
-// AC8 — Suche trifft verdeckte Lyrics (lyrics not in title)
+// AC8 — Search matches hidden lyric content, not title (via handle)
 // ---------------------------------------------------------------------------
 
 describe('mountEagleView — AC8: search matches hidden lyric content, not title', () => {
   let root: HTMLElement;
+  let handle: EagleViewHandle;
 
   beforeEach(() => {
     root = document.createElement('div');
-    mountEagleView(root, controlsSet);
+    handle = mountEagleView(root, controlsSet);
   });
 
   it('"glory" is not in "Song Beta" title but IS in its lyrics → tile stays visible', () => {
-    // Confirm "glory" is not in the title of songB
     expect(songB.name.toLowerCase()).not.toContain('glory');
-    // Confirm "glory" IS in its lyrics
     expect(songB.sections[0].lines[0].lyrics.toLowerCase()).toContain('glory');
 
-    const search = root.querySelector<HTMLInputElement>('.eagle-controls input[type="search"]')!;
-    search.value = 'glory';
-    triggerInput(search);
+    handle.setQuery('glory');
 
     const tiles = root.querySelectorAll<HTMLElement>('.eagle-tile');
     // tile[0] = songA ("hallelujah praise" — no "glory") → hidden
@@ -335,17 +355,9 @@ describe('mountEagleView — AC8: search matches hidden lyric content, not title
     expect(tiles[1].style.display).not.toBe('none');
   });
 
-  it('combined: after transpose +2 then search "hallelujah", only songA visible (state combined)', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]')!;
-    const search = root.querySelector<HTMLInputElement>('.eagle-controls input[type="search"]')!;
-
-    // Transpose first
-    slider.value = '2';
-    triggerInput(slider);
-
-    // Then search
-    search.value = 'hallelujah';
-    triggerInput(search);
+  it('combined: after setTranspose(2) then setQuery("hallelujah"), only songA visible with transposed chords', () => {
+    handle.setTranspose(2);
+    handle.setQuery('hallelujah');
 
     const tiles = root.querySelectorAll<HTMLElement>('.eagle-tile');
     // songA: has "hallelujah" → visible, shows transposed chord B
@@ -357,17 +369,11 @@ describe('mountEagleView — AC8: search matches hidden lyric content, not title
   });
 
   it('after search + transpose, clearing search restores both tiles without losing transpose', () => {
-    const slider = root.querySelector<HTMLInputElement>('.eagle-controls input[type="range"]')!;
-    const search = root.querySelector<HTMLInputElement>('.eagle-controls input[type="search"]')!;
-
-    slider.value = '2';
-    triggerInput(slider);
-    search.value = 'hallelujah';
-    triggerInput(search);
+    handle.setTranspose(2);
+    handle.setQuery('hallelujah');
 
     // Clear search — both tiles back
-    search.value = '';
-    triggerInput(search);
+    handle.setQuery('');
 
     const tiles = root.querySelectorAll<HTMLElement>('.eagle-tile');
     expect(tiles[0].style.display).not.toBe('none');

@@ -1,8 +1,12 @@
 import type { SongSet } from '../types';
 import { mountSlideView } from './SlideView';
+import type { SlideViewHandle } from './SlideView';
 import { mountEagleView } from './EagleView';
+import type { EagleViewHandle } from './EagleView';
 
 export type ViewMode = 'slide' | 'eagle';
+
+type ViewHandle = SlideViewHandle | EagleViewHandle;
 
 /**
  * App-shell component: renders a tab bar ("Slide" | "Eagle") and a view container.
@@ -30,8 +34,10 @@ export function mountViewSwitcher(
   // Closure state
   // ---------------------------------------------------------------------------
   let currentMode: ViewMode | null = null;
-  /** Dispose function returned by mountSlideView; null while eagle is active. */
-  let slideDispose: (() => void) | null = null;
+  /** Handle returned by the active view; null until first mount. */
+  let activeHandle: ViewHandle | null = null;
+  let globalQuery = '';
+  let globalTranspose = 0;
 
   // ---------------------------------------------------------------------------
   // DOM skeleton
@@ -60,6 +66,45 @@ export function mountViewSwitcher(
   tabBar.appendChild(slideTab);
   tabBar.appendChild(eagleTab);
 
+  // Global Controls: search + transpose (inserted inside .view-tabs, right side)
+  const globalControls = document.createElement('div');
+  globalControls.className = 'global-controls';
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'global-search';
+  searchInput.placeholder = 'Suche…';
+
+  const transposeSlider = document.createElement('input');
+  transposeSlider.type = 'range';
+  transposeSlider.className = 'global-transpose-slider';
+  transposeSlider.min = '-6';
+  transposeSlider.max = '6';
+  transposeSlider.step = '1';
+  transposeSlider.value = '0';
+
+  const transposeLabel = document.createElement('span');
+  transposeLabel.className = 'global-transpose-value';
+  transposeLabel.textContent = '0';
+
+  globalControls.appendChild(searchInput);
+  globalControls.appendChild(transposeSlider);
+  globalControls.appendChild(transposeLabel);
+  tabBar.appendChild(globalControls);
+
+  // Global controls — update state and forward to the active view handle.
+  searchInput.addEventListener('input', () => {
+    globalQuery = searchInput.value;
+    activeHandle?.setQuery(globalQuery);
+  });
+
+  transposeSlider.addEventListener('input', () => {
+    globalTranspose = parseInt(transposeSlider.value, 10);
+    transposeLabel.textContent =
+      globalTranspose > 0 ? `+${globalTranspose}` : String(globalTranspose);
+    activeHandle?.setTranspose(globalTranspose);
+  });
+
   const viewContainer = document.createElement('div');
   viewContainer.className = 'view-container';
 
@@ -72,10 +117,10 @@ export function mountViewSwitcher(
   // ---------------------------------------------------------------------------
 
   function teardownCurrent(): void {
-    if (slideDispose !== null) {
-      slideDispose();
-      slideDispose = null;
+    if (activeHandle !== null && 'dispose' in activeHandle) {
+      activeHandle.dispose();
     }
+    activeHandle = null;
     viewContainer.replaceChildren();
   }
 
@@ -95,9 +140,15 @@ export function mountViewSwitcher(
     updateTabState(mode);
 
     if (mode === 'slide') {
-      slideDispose = mountSlideView(viewContainer, set);
+      activeHandle = mountSlideView(viewContainer, set, {
+        query: globalQuery,
+        transpose: globalTranspose,
+      });
     } else {
-      mountEagleView(viewContainer, set);
+      activeHandle = mountEagleView(viewContainer, set, {
+        query: globalQuery,
+        transpose: globalTranspose,
+      });
     }
   }
 
