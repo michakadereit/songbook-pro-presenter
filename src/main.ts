@@ -2,11 +2,18 @@ import { parseSbp } from './parser';
 import { parseChordProFolder } from './chordproFolder';
 import { mountViewSwitcher } from './views/viewSwitcher';
 import { folderNameFromFiles, markSetLoaded } from './shellHelpers';
+import { nextTheme, applyTheme, loadTheme } from './theme';
+import { toggleFullscreen } from './fullscreen';
 import type { SongSet } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
 app.innerHTML = `
+  <header class="shell-bar">
+    <span class="shell-bar__spacer"></span>
+    <button class="shell-bar__btn" id="theme-btn" type="button">Theme: Auto</button>
+    <button class="shell-bar__btn" id="fullscreen-btn" type="button">Vollbild</button>
+  </header>
   <div class="uploader">
     <main class="dropzone">
       <h1>Songbook Pro Presenter</h1>
@@ -26,6 +33,50 @@ app.innerHTML = `
   </div>
   <div id="songs"></div>
 `;
+
+// ---------------------------------------------------------------------------
+// Theme — initialise from stored preference and wire the toggle button
+// ---------------------------------------------------------------------------
+
+let currentTheme = loadTheme();
+applyTheme(currentTheme);
+
+const themeBtn = app.querySelector<HTMLButtonElement>('#theme-btn')!;
+
+const THEME_LABELS: Record<string, string> = {
+  auto: 'Theme: Auto',
+  light: 'Theme: Hell',
+  dark: 'Theme: Dunkel',
+};
+
+function updateThemeLabel(): void {
+  themeBtn.textContent = THEME_LABELS[currentTheme] ?? 'Theme: Auto';
+}
+
+updateThemeLabel();
+
+themeBtn.addEventListener('click', () => {
+  currentTheme = nextTheme(currentTheme);
+  applyTheme(currentTheme);
+  updateThemeLabel();
+});
+
+// ---------------------------------------------------------------------------
+// Fullscreen — toggle via Fullscreen API and reflect state in the button
+// ---------------------------------------------------------------------------
+
+const fullscreenBtn = app.querySelector<HTMLButtonElement>('#fullscreen-btn')!;
+
+function updateFullscreenLabel(): void {
+  fullscreenBtn.textContent =
+    document.fullscreenElement != null ? 'Vollbild verlassen' : 'Vollbild';
+}
+
+fullscreenBtn.addEventListener('click', () => {
+  toggleFullscreen(document.documentElement);
+});
+
+document.addEventListener('fullscreenchange', updateFullscreenLabel);
 
 const fileInput = app.querySelector<HTMLInputElement>('#file-input')!;
 const folderInput = app.querySelector<HTMLInputElement>('#folder-input')!;
