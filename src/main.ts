@@ -18,6 +18,7 @@ app.innerHTML = `
     <button class="shell-bar__btn" id="export-btn" type="button">Exportieren</button>
     <button class="shell-bar__btn" id="discard-btn" type="button">Set verwerfen</button>
     <button class="shell-bar__btn" id="library-btn" type="button">Bibliothek</button>
+    <button class="shell-bar__btn" id="audio-btn" type="button">Audio</button>
     <button class="shell-bar__btn" id="theme-btn" type="button">Theme: Auto</button>
     <button class="shell-bar__btn" id="fullscreen-btn" type="button">Vollbild</button>
   </header>
@@ -95,6 +96,19 @@ document.addEventListener('fullscreenchange', updateFullscreenLabel);
 
 const listenerPanel = createListenerPanel();
 document.body.append(listenerPanel.el);
+
+// ---------------------------------------------------------------------------
+// Audio panel toggle — show/hide the listener panel via shell button
+// ---------------------------------------------------------------------------
+
+const audioBtn = app.querySelector<HTMLButtonElement>('#audio-btn')!;
+let audioVisible = true;
+
+audioBtn.addEventListener('click', () => {
+  audioVisible = !audioVisible;
+  listenerPanel.el.style.display = audioVisible ? '' : 'none';
+  audioBtn.textContent = audioVisible ? 'Audio' : 'Audio (aus)';
+});
 
 const fileInput = app.querySelector<HTMLInputElement>('#file-input')!;
 const folderInput = app.querySelector<HTMLInputElement>('#folder-input')!;

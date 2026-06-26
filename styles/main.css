@@ -995,15 +995,19 @@ body.has-set .uploader {
 .library-drawer__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-2);
   margin-block-end: var(--space-4);
   flex-shrink: 0;
 }
 
 .library-drawer__title {
+  flex: 1;
   margin: 0;
   font-size: var(--font-song-title);
   color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .library-drawer__close {
