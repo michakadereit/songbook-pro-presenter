@@ -1,5 +1,6 @@
 import type { Song } from './types';
 import { parseChordProFolder } from './chordproFolder';
+import { parseSbp } from './parser';
 
 export interface LibraryResult {
   songs: Song[];
@@ -60,18 +61,37 @@ async function deleteHandle(): Promise<void> {
 async function songsFromHandle(
   handle: FileSystemDirectoryHandle,
 ): Promise<LibraryResult> {
-  const files: File[] = [];
+  const choProFiles: File[] = [];
+  const sbpFiles: File[] = [];
+
   for await (const entry of handle.values()) {
-    if (entry.kind === 'file' && entry.name.endsWith('.chopro')) {
-      const file = await (entry as FileSystemFileHandle).getFile();
-      files.push(file);
+    if (entry.kind !== 'file') continue;
+    const fileHandle = entry as FileSystemFileHandle;
+    if (entry.name.endsWith('.chopro')) {
+      choProFiles.push(await fileHandle.getFile());
+    } else if (entry.name.endsWith('.sbp')) {
+      sbpFiles.push(await fileHandle.getFile());
     }
   }
-  const songSet = await parseChordProFolder(files, handle.name);
-  const songs = [...songSet.songs].sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-  return { songs, folderName: handle.name };
+
+  const chordProSongs: Song[] = choProFiles.length > 0
+    ? (await parseChordProFolder(choProFiles, handle.name)).songs
+    : [];
+
+  const sbpSongs: Song[] = [];
+  for (const file of sbpFiles) {
+    try {
+      const set = await parseSbp(file);
+      sbpSongs.push(...set.songs);
+    } catch {
+      // ungültige .sbp-Datei überspringen, kein Crash
+    }
+  }
+
+  const allSongs = [...chordProSongs, ...sbpSongs]
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return { songs: allSongs, folderName: handle.name };
 }
 
 // ---------------------------------------------------------------------------

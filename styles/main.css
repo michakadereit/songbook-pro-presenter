@@ -243,6 +243,24 @@ body.has-set .uploader {
   color: var(--accent);
 }
 
+.loader-label__btn {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.loader-label__btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 #status {
   margin-top: var(--space-5);
   color: var(--fg-muted);

@@ -32,6 +32,10 @@ app.innerHTML = `
           <span class="loader-label__text">OnSong-Ordner laden</span>
           <input type="file" id="folder-input" multiple />
         </label>
+        <label class="loader-label">
+          <span class="loader-label__text">Leeres Set</span>
+          <button class="loader-label__btn" id="new-set-btn" type="button">Neues Set anlegen</button>
+        </label>
       </div>
       <pre id="status"></pre>
     </main>
@@ -180,6 +184,19 @@ folderInput.addEventListener('change', async () => {
     libraryView.setHasSet(false);
     songs.replaceChildren();
   }
+});
+
+// --- "Neues Set anlegen" button ---
+const newSetBtn = app.querySelector<HTMLButtonElement>('#new-set-btn')!;
+
+newSetBtn.addEventListener('click', () => {
+  const emptySet: SongSet = {
+    id: 0,
+    name: 'Neues Set',
+    date: new Date().toISOString(),
+    songs: [],
+  };
+  loadSet(emptySet, 'Neues Set');
 });
 
 // --- Export button ---
