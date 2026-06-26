@@ -546,6 +546,30 @@ body.has-set .uploader {
   color: var(--fg);
 }
 
+/* --- Controls bar: persistent toolbar above the slide header -------------- */
+
+.slide-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.slide-controls input[type="range"] {
+  width: clamp(6rem, 15vw, 10rem);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.slide-font-scale-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+  min-width: 3.5rem;
+}
+
 /* --- Header: dimmed position indicator + prominent title ------------------ */
 
 .slide-header {
@@ -583,8 +607,10 @@ body.has-set .uploader {
   flex-direction: column;
   justify-content: center;
   /* Bump the lyric size for at-a-distance legibility. The chord scales off the
-     lyric em via --chord-ratio, so the segment stacking stays intact. */
-  --font-lyric: clamp(1.5rem, 1rem + 2.6vw, 3rem);
+     lyric em via --chord-ratio, so the segment stacking stays intact.
+     --slide-font-scale (default 1) is set by the font-size slider in JS and
+     multiplies the base clamp() value so both lyrics and chords scale together. */
+  --font-lyric: calc(clamp(1.5rem, 1rem + 2.6vw, 3rem) * var(--slide-font-scale, 1));
   --line-height-lyric: 1.5;
 }
 

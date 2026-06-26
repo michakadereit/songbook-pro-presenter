@@ -260,3 +260,65 @@ describe('mountSlideView — dispose removes keyboard listener', () => {
     expect(root.querySelector('.song__title')!.textContent).toBe('Second Song');
   });
 });
+
+// ---------------------------------------------------------------------------
+// AC6 — Schriftgrößen-Regler (font size slider)
+// ---------------------------------------------------------------------------
+
+describe('mountSlideView — AC6: font size slider', () => {
+  let root: HTMLElement;
+  let dispose: () => void;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    dispose = mountSlideView(root, set);
+  });
+
+  afterEach(() => {
+    dispose();
+  });
+
+  it('renders a range slider inside .slide-controls', () => {
+    const slider = root.querySelector('.slide-controls input[type="range"]');
+    expect(slider).not.toBeNull();
+  });
+
+  it('slider has attributes min=60, max=200, step=10, value=100', () => {
+    const slider = root.querySelector('.slide-controls input[type="range"]') as HTMLInputElement;
+    expect(slider.min).toBe('60');
+    expect(slider.max).toBe('200');
+    expect(slider.step).toBe('10');
+    expect(slider.value).toBe('100');
+  });
+
+  it('shows default scale display "100 %"', () => {
+    const display = root.querySelector('.slide-font-scale-value');
+    expect(display).not.toBeNull();
+    expect(display!.textContent).toBe('100 %');
+  });
+
+  it('setting slider to 150 and dispatching input sets --slide-font-scale to "1.5" on .slide-view', () => {
+    const slider = root.querySelector('.slide-controls input[type="range"]') as HTMLInputElement;
+    slider.value = '150';
+    slider.dispatchEvent(new Event('input'));
+    const wrapper = root.querySelector('.slide-view') as HTMLElement;
+    expect(wrapper.style.getPropertyValue('--slide-font-scale')).toBe('1.5');
+  });
+
+  it('display updates to "150 %" after slider change', () => {
+    const slider = root.querySelector('.slide-controls input[type="range"]') as HTMLInputElement;
+    slider.value = '150';
+    slider.dispatchEvent(new Event('input'));
+    const display = root.querySelector('.slide-font-scale-value');
+    expect(display!.textContent).toBe('150 %');
+  });
+
+  it('font scale persists on .slide-view after ArrowRight navigation', () => {
+    const slider = root.querySelector('.slide-controls input[type="range"]') as HTMLInputElement;
+    slider.value = '150';
+    slider.dispatchEvent(new Event('input'));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    const wrapper = root.querySelector('.slide-view') as HTMLElement;
+    expect(wrapper.style.getPropertyValue('--slide-font-scale')).toBe('1.5');
+  });
+});
