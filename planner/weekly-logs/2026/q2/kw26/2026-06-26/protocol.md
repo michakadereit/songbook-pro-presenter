@@ -25,6 +25,12 @@
   (+ `vite.config.ts` setupFiles). SlideView in Controls (einmal) + Body (re-render) getrennt.
 - `feat/presentation-ux` nach `main` gemergt, Branch gelöscht; Plan → `completed/`, Tickets DONE.
 
+- Session-Erkenntnisse in `CLAUDE.md` festgehalten: aktualisierte Projektstruktur/Modulkarte +
+  Architektur-Regel (Import-Schicht), Sub-Agent-Orchestrierung (Vordergrund wg. Bash, Modellwahl,
+  Selbst-Verifikation), Browser-Verifikation (Playwright MCP), Test-Gotchas (process.cwd-Fixtures,
+  jsdom-localStorage-Mock, vitest/config, kein `git add -A`), CSS-/Rendering-Konventionen,
+  Format-Notizen (Header-Stile, Versionszeile, Nashville, OnSong .chopro vs .xml).
+
 ## Nächste Schritte
 - Optional: echtes Fullscreen am Gerät prüfen (headless blockiert); Tastatur-Shortcut dafür.
 - Optional: globalen Transpose/Suche in die Shell heben; Schrift-Slider auch für Eagle.

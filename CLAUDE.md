@@ -98,24 +98,32 @@ Parse `.sbp` set files (SongBook Pro format) and present them in a browser-based
 /
 ├── index.html
 ├── src/
-│   ├── types.ts       # Song, SongSet, SongLine, Chord — pure data types
-│   ├── parser.ts      # .sbp ZIP → JSON → SongSet
-│   ├── views/
-│   │   ├── SlideView.ts
-│   │   └── EagleView.ts
-│   ├── components/
-│   │   └── SongRenderer.ts
-│   └── main.ts
-├── styles/
-│   └── main.css
-├── samples/           # .sbp files for development/testing
-├── docs/
-│   ├── specs/         # Feature specs (spec-driven development)
-│   └── exec-plans/
-│       ├── active/    # Plans in progress
-│       └── completed/ # Finished plans
-└── planner/           # Work logs, tickets, milestones
+│   ├── types.ts            # Song, SongSet, SongLine, Chord — pure data types
+│   ├── main.ts             # App shell: loaders, uploader, theme/fullscreen, mounts views
+│   │   # --- Import layer (all loaders → SongSet; views are format-agnostic) ---
+│   ├── parser.ts           # .sbp ZIP → JSON → SongSet
+│   ├── chordproParser.ts   # one .chopro text → Song
+│   ├── chordproFolder.ts   # OnSong folder (File[]) → SongSet (.xml ignored)
+│   ├── chordLine.ts        # shared inline-[chord] line parser (sbp + chopro)
+│   ├── transpose.ts        # transposeSong(song, semitones) — pure, via chordsheetjs
+│   │   # --- UI ---
+│   ├── components/SongRenderer.ts  # one Song → DOM (chord-over-syllable segments)
+│   ├── views/SlideView.ts          # full-screen slides + keyboard nav + search + font slider
+│   ├── views/EagleView.ts          # chords-only grid + global transpose + lyric search
+│   ├── views/viewSwitcher.ts       # Slide↔Eagle shell toggle (disposes prev view)
+│   ├── theme.ts            # light/dark/auto via :root color-scheme, persisted
+│   ├── fullscreen.ts       # Fullscreen API toggle
+│   ├── shellHelpers.ts     # small pure shell helpers
+│   └── test-setup.ts       # jsdom localStorage mock (see Test gotchas)
+├── styles/main.css         # design tokens (light-dark, clamp) + all component CSS
+├── samples/                # .sbp + samples/onsong/ (.chopro/.xml) for dev/testing
+├── docs/{specs,exec-plans/{active,completed}}/
+└── planner/                # Work logs, tickets, milestones
 ```
+
+**Architecture rule:** new input formats become a *loader* that returns a `SongSet`.
+`SongRenderer`, the views, `viewSwitcher`, and `transposeSong` stay format-agnostic and
+must not need changes for a new format.
 
 ## Makefile Conventions
 
@@ -265,3 +273,75 @@ When a ticket from an exec-plan is completed, always:
    - Use the ticket id and slug as the scope: `feat(TICKET-001-parser): parse sbp zip format`
    - Keep the subject line under 72 characters.
 2. **Push** the commit immediately after committing.
+
+## Sub-Agent-Orchestrierung (bewährter Ablauf)
+
+Mehrere Features wurden erfolgreich so umgesetzt — diesen Loop wiederverwenden:
+
+1. **Spec → rote Tests → Exec Plan** (siehe Spec-Driven Development). Tickets klein und
+   self-contained; pro Ticket ein empfohlenes Modell.
+2. **Modellwahl pro Ticket:** Logik/Parsing/Wiring → **Sonnet**; visuelles CSS-/Design-Ticket
+   → **Opus**. Im Plan-README festhalten.
+3. **Sub-Agenten im VORDERGRUND starten** (kein `run_in_background`). Grund: Hintergrund-
+   Agenten haben in dieser Umgebung **keinen Bash-Zugriff** → sie können `vitest`/`tsc` nicht
+   ausführen, brechen die TDD-Verifikation ab und haben schon mal eine Implementierung
+   unfertig hinterlassen. Hintergrund nur für reines Schreiben/Analyse ohne Verifikation.
+4. **Pro Ticket genau einen Agenten**, mit präzisem Auftrag: zu lesende Dateien, exakte
+   Scope-Grenzen („fasse NUR diese Dateien an"), erwartete ACs, und „nichts committen / Branch
+   nicht wechseln".
+5. **Nach jeder Phase selbst verifizieren** (`npx vitest run`, `npx tsc --noEmit`), *dann*
+   committen. Den Bericht eines Agenten nie ungeprüft glauben.
+6. **Browser-Verifikation am Ende** (Playwright MCP, siehe unten), dann Merge + Plan →
+   `completed/` + Branch-Cleanup.
+7. Reihenfolge meist sequenziell, wenn Tickets dieselbe Datei teilen (häufig `styles/main.css`)
+   — sonst Merge-Konflikte. Der `exec-plan-orchestrator`-Agent kann die Reihenfolge bestätigen.
+
+## Browser-Verifikation (Playwright MCP)
+
+- Dev-Server im Hintergrund starten (`npm run dev`), dann `browser_navigate` auf
+  `http://localhost:5173/`.
+- Datei laden: den jeweiligen Button klicken (Snapshot holen, `ref` nutzen) → der File-Chooser
+  öffnet → `browser_file_upload` mit dem absoluten Pfad. Für den **Ordner**-Input
+  (`webkitdirectory`) akzeptiert `setFiles` den **Ordnerpfad** direkt.
+- Interaktionen/Assertions am robustesten via `browser_evaluate`: Events dispatchen
+  (`new KeyboardEvent`, `input`), Klassen/Custom-Properties/`textContent` auslesen.
+- Ein `favicon.ico` 404 in der Konsole ist harmlos.
+- Nach Code-Änderung lädt Vite-HMR; bei Entry-Modulen ggf. neu navigieren (Set neu laden).
+- Echtes Fullscreen ist headless blockiert → die Toggle-Logik per Unit-Test (Spies) absichern,
+  im Browser nur „Button da, Klick wirft nicht" prüfen.
+
+## Test- & Tooling-Gotchas (Projekt-spezifisch)
+
+- **Fixtures laden:** Unter Vitest ist `import.meta.url` KEIN `file:`-URL. Sample-Pfade über
+  `resolve(process.cwd(), 'samples/...')` auflösen (Vitest läuft im Projekt-Root).
+- **localStorage in jsdom:** Node 26 + jsdom 29 liefern kein nutzbares `localStorage`.
+  `src/test-setup.ts` injiziert einen In-Memory-Mock; eingebunden über `setupFiles` in
+  `vite.config.ts`. Nicht entfernen — sonst scheitern Theme-Tests.
+- **`vitest`-Config** liegt in `vite.config.ts` mit `defineConfig` aus **`vitest/config`**
+  (nicht `vite`), sonst kennt TS das `test`-Feld nicht.
+- **Git-Staging:** Niemals `git add -A` — hat schon versehentlich `.idea/` und
+  `.claude/agent-memory/` getrackt. Gezielt die Ticket-Dateien stagen. (Ignoriert:
+  `.idea/`, `.playwright-mcp/`, `.claude/agent-memory/`.)
+
+## CSS-/Rendering-Konventionen (gewachsen, nicht brechen)
+
+- **Akkord-über-Silbe = Segment-Stacking:** Zeile an Akkord-Positionen in `.seg` zerlegt,
+  je Segment `display:inline-flex; flex-direction:column` (Akkord über Silbe), `.line` ist
+  `flex-wrap`. NICHT durch andere Layouts ersetzen — Akkorde bleiben so geankert & responsiv.
+- **Design-Tokens** in `:root`: Farben via `light-dark()`, fluide Typo via `clamp()` (rem),
+  Theme über `color-scheme`. `--chord-ratio` = Akkord/Lyric-Größe; `--slide-font-scale` =
+  Slide-Schriftgröße. Akkorde skalieren relativ zur Lyric-`em` → ein Slider skaliert beides.
+- **Breiten-Override:** `#songs:has(.eagle-view)` / `:has(.slide-view)` heben die Lesebreite
+  (`--max-content`) auf, damit Grid/Slide voll breit werden.
+- `.seg__lyric` / `.seg__chord` nutzen `white-space: pre` — signifikante Parser-Leerzeichen
+  bleiben erhalten. Die Klassennamen sind ein „public CSS contract" zwischen TS und CSS.
+
+## Format-Notizen
+
+- **Section-Header:** `.sbp`-Content nutzt `{c: Verse 1}`; OnSong-`.chopro` nutzt `Label:`
+  bzw. `Label` (mit/ohne Doppelpunkt), inkl. alphanumerischer Suffixe wie `Verse 1a`.
+- **`.sbp`-`dataFile.txt`** beginnt mit einer Versionszeile (`1.0\n`) VOR dem JSON.
+- **Nashville-Zahlen-Akkorde** (`[6m]`, `[4]`) werden angezeigt; chordsheetjs transponiert sie
+  zwar (`6m`→`7m`), aber NICHT tonart-bewusst → musikalisch ggf. unpassend (bekannte Grenze).
+- **OnSong-Export:** jeder Song liegt als `.chopro` UND `.xml` vor → `.chopro` bevorzugen,
+  den positionsbasierten `.xml`-Parser meiden (out of scope).
