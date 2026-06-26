@@ -77,7 +77,17 @@ export function parseChordPro(text: string, fallbackName?: string): Song {
 
     if (line.trim().length === 0) continue; // blank line — separator, ignore
 
-    const directive = DIRECTIVE_RE.exec(line.trim());
+    const trimmed = line.trim();
+
+    // {comment: Title} → Section-Header (ChordPro-Standard, z.B. in .txt-Exporten)
+    const commentMatch = /^\{comment:\s*(.+?)\s*\}$/i.exec(trimmed);
+    if (commentMatch) {
+      current = { title: commentMatch[1], lines: [] };
+      sections.push(current);
+      continue;
+    }
+
+    const directive = DIRECTIVE_RE.exec(trimmed);
     if (directive) {
       meta.set(directive[1].toLowerCase(), directive[2]);
       continue;
