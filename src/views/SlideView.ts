@@ -179,6 +179,31 @@ export function mountSlideView(
 
   controls.appendChild(slider);
   controls.appendChild(scaleDisplay);
+
+  // Two-column layout toggle button
+  const TWO_COL_KEY = 'slide-two-col';
+
+  const twoColBtn = document.createElement('button');
+  twoColBtn.type = 'button';
+  twoColBtn.className = 'slide-two-col-btn';
+  twoColBtn.textContent = '2 Sp.';
+  twoColBtn.setAttribute('aria-pressed', 'false');
+
+  let twoCol = localStorage.getItem(TWO_COL_KEY) === 'true';
+
+  if (twoCol) {
+    wrapper.classList.add('slide-view--two-col');
+    twoColBtn.setAttribute('aria-pressed', 'true');
+  }
+
+  twoColBtn.addEventListener('click', () => {
+    twoCol = !twoCol;
+    twoColBtn.setAttribute('aria-pressed', String(twoCol));
+    wrapper.classList.toggle('slide-view--two-col', twoCol);
+    localStorage.setItem(TWO_COL_KEY, String(twoCol));
+  });
+
+  controls.appendChild(twoColBtn);
   wrapper.appendChild(controls);
 
   // --- Header: position indicator + song title ------------------------------

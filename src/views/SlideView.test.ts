@@ -3,6 +3,11 @@ import { mountSlideView } from './SlideView';
 import type { SlideViewHandle } from './SlideView';
 import type { Song, SongSet } from '../types';
 
+// Ensure localStorage state never bleeds between tests
+beforeEach(() => {
+  localStorage.clear();
+});
+
 // ---------------------------------------------------------------------------
 // Fixture helpers
 // ---------------------------------------------------------------------------
@@ -576,6 +581,125 @@ describe('mountSlideView — TICKET-003: opts.transpose renders transposed chord
       .filter((t) => t !== '');
     expect(chordTexts).toContain('G');
     expect(chordTexts).toContain('D');
+    handle.dispose();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TICKET-001 ACs — Two-column layout toggle button
+// ---------------------------------------------------------------------------
+
+describe('mountSlideView — TICKET-001: two-column toggle button present', () => {
+  let root: HTMLElement;
+  let handle: SlideViewHandle;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    handle = mountSlideView(root, set);
+  });
+
+  afterEach(() => {
+    handle.dispose();
+  });
+
+  it('.slide-controls contains a button with class slide-two-col-btn', () => {
+    const btn = root.querySelector('.slide-controls .slide-two-col-btn');
+    expect(btn).not.toBeNull();
+  });
+
+  it('button starts with aria-pressed="false"', () => {
+    const btn = root.querySelector('.slide-two-col-btn') as HTMLElement;
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('click sets aria-pressed="true" and adds .slide-view--two-col to .slide-view', () => {
+    const btn = root.querySelector('.slide-two-col-btn') as HTMLButtonElement;
+    btn.click();
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+    expect(root.querySelector('.slide-view')!.classList.contains('slide-view--two-col')).toBe(true);
+  });
+
+  it('second click sets aria-pressed="false" and removes .slide-view--two-col', () => {
+    const btn = root.querySelector('.slide-two-col-btn') as HTMLButtonElement;
+    btn.click();
+    btn.click();
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+    expect(root.querySelector('.slide-view')!.classList.contains('slide-view--two-col')).toBe(false);
+  });
+});
+
+describe('mountSlideView — TICKET-001: navigation does not change toggle state', () => {
+  let root: HTMLElement;
+  let handle: SlideViewHandle;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    handle = mountSlideView(root, set);
+  });
+
+  afterEach(() => {
+    handle.dispose();
+  });
+
+  it('ArrowRight navigation keeps aria-pressed="false" when toggle is off', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    const btn = root.querySelector('.slide-two-col-btn') as HTMLElement;
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
+    expect(root.querySelector('.slide-view')!.classList.contains('slide-view--two-col')).toBe(false);
+  });
+
+  it('ArrowLeft navigation keeps aria-pressed="true" when toggle is on', () => {
+    const btn = root.querySelector('.slide-two-col-btn') as HTMLButtonElement;
+    btn.click(); // activate two-col
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+    expect(root.querySelector('.slide-view')!.classList.contains('slide-view--two-col')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TICKET-002 ACs — localStorage persistence of two-col toggle state
+// ---------------------------------------------------------------------------
+
+describe('mountSlideView — TICKET-002: localStorage persistence of two-col state', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('when localStorage has "true", .slide-view gets .slide-view--two-col on mount', () => {
+    localStorage.setItem('slide-two-col', 'true');
+    const root = document.createElement('div');
+    const handle = mountSlideView(root, set);
+    expect(root.querySelector('.slide-view')!.classList.contains('slide-view--two-col')).toBe(true);
+    handle.dispose();
+  });
+
+  it('when localStorage has "true", button has aria-pressed="true" on mount', () => {
+    localStorage.setItem('slide-two-col', 'true');
+    const root = document.createElement('div');
+    const handle = mountSlideView(root, set);
+    const btn = root.querySelector('.slide-two-col-btn') as HTMLElement;
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+    handle.dispose();
+  });
+
+  it('after one click, localStorage stores "true"', () => {
+    const root = document.createElement('div');
+    const handle = mountSlideView(root, set);
+    const btn = root.querySelector('.slide-two-col-btn') as HTMLButtonElement;
+    btn.click();
+    expect(localStorage.getItem('slide-two-col')).toBe('true');
+    handle.dispose();
+  });
+
+  it('after two clicks, localStorage stores "false"', () => {
+    const root = document.createElement('div');
+    const handle = mountSlideView(root, set);
+    const btn = root.querySelector('.slide-two-col-btn') as HTMLButtonElement;
+    btn.click();
+    btn.click();
+    expect(localStorage.getItem('slide-two-col')).toBe('false');
     handle.dispose();
   });
 });

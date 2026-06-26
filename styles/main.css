@@ -641,6 +641,26 @@ body.has-set .uploader {
   min-width: 3.5rem;
 }
 
+.slide-two-col-btn {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.slide-two-col-btn[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+}
+
 /* Lyric search field in the slide controls toolbar */
 .slide-search {
   flex: 1;
@@ -741,4 +761,33 @@ body.has-set .uploader {
 .slide-view .section__title {
   margin-bottom: var(--space-3);
   font-size: clamp(0.85rem, 0.78rem + 0.4vw, 1.05rem);
+}
+
+/* --- Two-column layout modifier ------------------------------------------- */
+
+/* 1. Pin slide-view to exactly one viewport height (no content-driven overflow) */
+.slide-view--two-col {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* 2. Body may shrink and clips overflowing content */
+.slide-view--two-col .slide-body {
+  min-height: 0;              /* Flex item may shrink below content-size */
+  overflow: hidden;
+  justify-content: flex-start; /* Content starts at top — no centering */
+}
+
+/* 3. Song fills remaining flex height and distributes into 2 columns */
+.slide-view--two-col .slide-body .song {
+  height: 100%;
+  columns: 2;
+  column-fill: auto;          /* Fill column 1, then overflow into column 2 */
+  column-gap: clamp(2rem, 5vw, 4rem);
+  column-rule: 1px solid var(--border);
+}
+
+/* Keep section header + lines together — no split across column boundary */
+.slide-view--two-col .slide-body .section {
+  break-inside: avoid;
 }
