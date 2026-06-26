@@ -25,3 +25,14 @@ export function folderNameFromFiles(files: File[]): string {
   }
   return 'OnSong';
 }
+
+/**
+ * Mark the app shell as having a set loaded.
+ *
+ * Adds the `has-set` class to the given root element (typically `document.body`).
+ * CSS uses this marker to hide the `.uploader` container and reveal the view.
+ * Calling this multiple times is safe — `classList.add` is idempotent.
+ */
+export function markSetLoaded(root: HTMLElement): void {
+  root.classList.add('has-set');
+}

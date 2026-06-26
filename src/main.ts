@@ -1,27 +1,29 @@
 import { parseSbp } from './parser';
 import { parseChordProFolder } from './chordproFolder';
 import { mountViewSwitcher } from './views/viewSwitcher';
-import { folderNameFromFiles } from './shellHelpers';
+import { folderNameFromFiles, markSetLoaded } from './shellHelpers';
 import type { SongSet } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
 app.innerHTML = `
-  <main class="dropzone">
-    <h1>Songbook Pro Presenter</h1>
-    <p>Lade eine <code>.sbp</code>-Datei oder einen OnSong-Ordner mit <code>.chopro</code>-Dateien.</p>
-    <div class="loader-inputs">
-      <label class="loader-label">
-        <span class="loader-label__text">SongBook Pro Datei</span>
-        <input type="file" id="file-input" accept=".sbp" />
-      </label>
-      <label class="loader-label">
-        <span class="loader-label__text">OnSong-Ordner laden</span>
-        <input type="file" id="folder-input" multiple />
-      </label>
-    </div>
-    <pre id="status"></pre>
-  </main>
+  <div class="uploader">
+    <main class="dropzone">
+      <h1>Songbook Pro Presenter</h1>
+      <p>Lade eine <code>.sbp</code>-Datei oder einen OnSong-Ordner mit <code>.chopro</code>-Dateien.</p>
+      <div class="loader-inputs">
+        <label class="loader-label">
+          <span class="loader-label__text">SongBook Pro Datei</span>
+          <input type="file" id="file-input" accept=".sbp" />
+        </label>
+        <label class="loader-label">
+          <span class="loader-label__text">OnSong-Ordner laden</span>
+          <input type="file" id="folder-input" multiple />
+        </label>
+      </div>
+      <pre id="status"></pre>
+    </main>
+  </div>
   <div id="songs"></div>
 `;
 
@@ -44,6 +46,7 @@ function loadSet(set: SongSet, label: string): void {
   status.textContent = `Geladen: ${label} (${set.songs.length} Songs)`;
   activeSwitcher?.dispose();
   activeSwitcher = mountViewSwitcher(songs, set, 'slide');
+  markSetLoaded(document.body);
 }
 
 // --- .sbp file input ---

@@ -61,6 +61,20 @@ body {
    App shell / dropzone
    =========================================================================== */
 
+/* Upload container — centres both file inputs horizontally + vertically in the
+   viewport until a set is loaded. Once `body.has-set` is set by the app shell,
+   the uploader is hidden and the view takes over the full page. */
+
+.uploader {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+
+body.has-set .uploader {
+  display: none;
+}
+
 .dropzone {
   max-width: var(--max-content);
   margin: 0 auto;
