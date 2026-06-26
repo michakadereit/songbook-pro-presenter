@@ -11,7 +11,7 @@ npm run build    # production build
 npm test         # run unit tests
 ```
 
-Drop a `.sbp` file onto the app or use the file picker to load your set. For OnSong users, drag in a folder of `.chopro` files.
+Drop a `.sbp` file onto the app or use the file picker to load your set. For OnSong users, drag in a folder of `.chopro` files. Once a set is loaded, use the **Exportieren** button to save it back as a `.sbp` file — regardless of which format you originally loaded.
 
 ## Features
 
@@ -53,6 +53,19 @@ Toggle native browser fullscreen for distraction-free presentation.
 |---|---|
 | `.sbp` | SongBook Pro set file (ZIP archive) — drag & drop or file picker |
 | `.chopro` / OnSong folder | Drag in an entire exported OnSong folder |
+| Song Library | A folder of `.chopro` files — configured once via **Bibliothek → Ordner konfigurieren** |
+
+### Song Library
+
+Keep a folder of songs outside any set and pull individual songs into the current set on the fly. Click **Bibliothek** in the top bar to open the library drawer, then click **Ordner konfigurieren** to point the app at your library folder. The folder handle is persisted in IndexedDB so the library reopens automatically after a page reload (the browser will ask for folder access once per session).
+
+**Required format:** the library folder must contain `.chopro` files (ChordPro / OnSong export format). Each `.chopro` file becomes one song. `.xml` files in the same folder are ignored.
+
+Click **+** next to any song to append it to the end of the currently loaded set. The view remounts immediately so you can navigate to the new song.
+
+### Export
+
+Save the currently loaded set as a `.sbp` file — regardless of whether you originally loaded a `.sbp` file or an OnSong folder. Click **Exportieren** (visible once a set is loaded) to trigger a browser download. The exported file can be re-imported into the app.
 
 ### Live Audio Detection
 
