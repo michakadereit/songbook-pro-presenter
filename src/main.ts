@@ -1,29 +1,82 @@
 import { parseSbp } from './parser';
 import { parseChordProFolder } from './chordproFolder';
 import { mountViewSwitcher } from './views/viewSwitcher';
-import { folderNameFromFiles } from './shellHelpers';
+import { folderNameFromFiles, markSetLoaded } from './shellHelpers';
+import { nextTheme, applyTheme, loadTheme } from './theme';
+import { toggleFullscreen } from './fullscreen';
 import type { SongSet } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
 app.innerHTML = `
-  <main class="dropzone">
-    <h1>Songbook Pro Presenter</h1>
-    <p>Lade eine <code>.sbp</code>-Datei oder einen OnSong-Ordner mit <code>.chopro</code>-Dateien.</p>
-    <div class="loader-inputs">
-      <label class="loader-label">
-        <span class="loader-label__text">SongBook Pro Datei</span>
-        <input type="file" id="file-input" accept=".sbp" />
-      </label>
-      <label class="loader-label">
-        <span class="loader-label__text">OnSong-Ordner laden</span>
-        <input type="file" id="folder-input" multiple />
-      </label>
-    </div>
-    <pre id="status"></pre>
-  </main>
+  <header class="shell-bar">
+    <span class="shell-bar__spacer"></span>
+    <button class="shell-bar__btn" id="theme-btn" type="button">Theme: Auto</button>
+    <button class="shell-bar__btn" id="fullscreen-btn" type="button">Vollbild</button>
+  </header>
+  <div class="uploader">
+    <main class="dropzone">
+      <h1>Songbook Pro Presenter</h1>
+      <p>Lade eine <code>.sbp</code>-Datei oder einen OnSong-Ordner mit <code>.chopro</code>-Dateien.</p>
+      <div class="loader-inputs">
+        <label class="loader-label">
+          <span class="loader-label__text">SongBook Pro Datei</span>
+          <input type="file" id="file-input" accept=".sbp" />
+        </label>
+        <label class="loader-label">
+          <span class="loader-label__text">OnSong-Ordner laden</span>
+          <input type="file" id="folder-input" multiple />
+        </label>
+      </div>
+      <pre id="status"></pre>
+    </main>
+  </div>
   <div id="songs"></div>
 `;
+
+// ---------------------------------------------------------------------------
+// Theme — initialise from stored preference and wire the toggle button
+// ---------------------------------------------------------------------------
+
+let currentTheme = loadTheme();
+applyTheme(currentTheme);
+
+const themeBtn = app.querySelector<HTMLButtonElement>('#theme-btn')!;
+
+const THEME_LABELS: Record<string, string> = {
+  auto: 'Theme: Auto',
+  light: 'Theme: Hell',
+  dark: 'Theme: Dunkel',
+};
+
+function updateThemeLabel(): void {
+  themeBtn.textContent = THEME_LABELS[currentTheme] ?? 'Theme: Auto';
+}
+
+updateThemeLabel();
+
+themeBtn.addEventListener('click', () => {
+  currentTheme = nextTheme(currentTheme);
+  applyTheme(currentTheme);
+  updateThemeLabel();
+});
+
+// ---------------------------------------------------------------------------
+// Fullscreen — toggle via Fullscreen API and reflect state in the button
+// ---------------------------------------------------------------------------
+
+const fullscreenBtn = app.querySelector<HTMLButtonElement>('#fullscreen-btn')!;
+
+function updateFullscreenLabel(): void {
+  fullscreenBtn.textContent =
+    document.fullscreenElement != null ? 'Vollbild verlassen' : 'Vollbild';
+}
+
+fullscreenBtn.addEventListener('click', () => {
+  toggleFullscreen(document.documentElement);
+});
+
+document.addEventListener('fullscreenchange', updateFullscreenLabel);
 
 const fileInput = app.querySelector<HTMLInputElement>('#file-input')!;
 const folderInput = app.querySelector<HTMLInputElement>('#folder-input')!;
@@ -44,6 +97,7 @@ function loadSet(set: SongSet, label: string): void {
   status.textContent = `Geladen: ${label} (${set.songs.length} Songs)`;
   activeSwitcher?.dispose();
   activeSwitcher = mountViewSwitcher(songs, set, 'slide');
+  markSetLoaded(document.body);
 }
 
 // --- .sbp file input ---

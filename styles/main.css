@@ -58,8 +58,63 @@ body {
 }
 
 /* ===========================================================================
+   Shell bar — fixed top-right strip with Theme + Fullscreen buttons.
+   Visible at all times (upload screen and after set is loaded) so the user
+   can adjust the theme before loading a set. `z-index: 30` keeps it above
+   the sticky view-tabs bar (z-index: 20).
+   =========================================================================== */
+
+.shell-bar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
+.shell-bar__spacer {
+  flex: 1;
+}
+
+.shell-bar__btn {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.shell-bar__btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ===========================================================================
    App shell / dropzone
    =========================================================================== */
+
+/* Upload container — centres both file inputs horizontally + vertically in the
+   viewport until a set is loaded. Once `body.has-set` is set by the app shell,
+   the uploader is hidden and the view takes over the full page. */
+
+.uploader {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+
+body.has-set .uploader {
+  display: none;
+}
 
 .dropzone {
   max-width: var(--max-content);
@@ -491,6 +546,64 @@ body {
   color: var(--fg);
 }
 
+/* --- Controls bar: persistent toolbar above the slide header -------------- */
+
+.slide-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.slide-controls input[type="range"] {
+  width: clamp(6rem, 15vw, 10rem);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.slide-font-scale-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+  min-width: 3.5rem;
+}
+
+/* Lyric search field in the slide controls toolbar */
+.slide-search {
+  flex: 1;
+  min-width: 8rem;
+  max-width: 18rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.slide-search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.slide-search::placeholder {
+  color: var(--fg-muted);
+}
+
+/* No-results hint shown in .slide-body when the search has no matches */
+.slide-no-results {
+  margin: 0;
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  padding: var(--space-7) 0;
+}
+
 /* --- Header: dimmed position indicator + prominent title ------------------ */
 
 .slide-header {
@@ -528,8 +641,10 @@ body {
   flex-direction: column;
   justify-content: center;
   /* Bump the lyric size for at-a-distance legibility. The chord scales off the
-     lyric em via --chord-ratio, so the segment stacking stays intact. */
-  --font-lyric: clamp(1.5rem, 1rem + 2.6vw, 3rem);
+     lyric em via --chord-ratio, so the segment stacking stays intact.
+     --slide-font-scale (default 1) is set by the font-size slider in JS and
+     multiplies the base clamp() value so both lyrics and chords scale together. */
+  --font-lyric: calc(clamp(1.5rem, 1rem + 2.6vw, 3rem) * var(--slide-font-scale, 1));
   --line-height-lyric: 1.5;
 }
 
