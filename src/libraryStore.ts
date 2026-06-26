@@ -1,5 +1,6 @@
 import type { Song, SongSet } from './types';
 import { parseChordProFolder } from './chordproFolder';
+import { parseChordPro } from './chordproParser';
 import { parseSbp } from './parser';
 import { songSetToSbpBlob } from './exporter';
 
@@ -63,13 +64,16 @@ async function songsFromHandle(
   handle: FileSystemDirectoryHandle,
 ): Promise<LibraryResult> {
   const choProFiles: File[] = [];
+  const txtFiles: File[] = [];
   const sbpFiles: File[] = [];
 
   for await (const entry of handle.values()) {
     if (entry.kind !== 'file') continue;
     const fileHandle = entry as FileSystemFileHandle;
-    if (entry.name.endsWith('.chopro') || entry.name.endsWith('.txt')) {
+    if (entry.name.endsWith('.chopro')) {
       choProFiles.push(await fileHandle.getFile());
+    } else if (entry.name.endsWith('.txt')) {
+      txtFiles.push(await fileHandle.getFile());
     } else if (entry.name.endsWith('.sbp')) {
       sbpFiles.push(await fileHandle.getFile());
     }
@@ -78,6 +82,13 @@ async function songsFromHandle(
   const chordProSongs: Song[] = choProFiles.length > 0
     ? (await parseChordProFolder(choProFiles, handle.name)).songs
     : [];
+
+  const txtSongs: Song[] = await Promise.all(
+    txtFiles.map(async (file) => {
+      const text = await file.text();
+      return parseChordPro(text, file.name.replace(/\.txt$/i, ''));
+    }),
+  );
 
   const sbpSongs: Song[] = [];
   for (const file of sbpFiles) {
@@ -89,7 +100,7 @@ async function songsFromHandle(
     }
   }
 
-  const allSongs = [...chordProSongs, ...sbpSongs]
+  const allSongs = [...chordProSongs, ...txtSongs, ...sbpSongs]
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return { songs: allSongs, folderName: handle.name };
