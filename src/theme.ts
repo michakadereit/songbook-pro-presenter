@@ -11,13 +11,18 @@ export function nextTheme(current: Theme): Theme {
 }
 
 /**
- * Applies the given theme to the document root and persists it in localStorage.
- * Sets `document.documentElement.style.colorScheme` so that CSS `light-dark()`
- * tokens respond immediately without a page reload.
+ * Applies the given theme by setting (or removing) a `data-theme` attribute
+ * on the document root. CSS picks up the attribute via attribute selectors and
+ * media queries — no `light-dark()` or inline `colorScheme` needed, so the
+ * approach works identically in dev and with static file serving.
  */
 export function applyTheme(theme: Theme): void {
-  const colorScheme = theme === 'auto' ? 'light dark' : theme;
-  document.documentElement.style.colorScheme = colorScheme;
+  const root = document.documentElement;
+  if (theme === 'auto') {
+    root.removeAttribute('data-theme');
+  } else {
+    root.setAttribute('data-theme', theme);
+  }
   // Use window.localStorage explicitly to avoid Node.js experimental global
   // shadowing jsdom's implementation in the test environment.
   window.localStorage.setItem(THEME_KEY, theme);
