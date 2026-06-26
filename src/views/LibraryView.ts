@@ -4,6 +4,7 @@ import { openLibraryFolder, loadLibrarySongs } from '../libraryStore';
 export interface LibraryViewOptions {
   onAddSong: (song: Song) => void;
   hasSet: () => boolean;
+  onExportSetToLibrary?: () => Promise<void>;
 }
 
 export interface LibraryView {
@@ -12,6 +13,7 @@ export interface LibraryView {
   close(): void;
   toggle(): void;
   setHasSet(has: boolean): void;
+  refresh(): Promise<void>;
   dispose(): void;
 }
 
@@ -37,6 +39,12 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
   title.className = 'library-drawer__title';
   title.textContent = 'Bibliothek';
 
+  const exportSetBtn = document.createElement('button');
+  exportSetBtn.className = 'library-export-btn';
+  exportSetBtn.type = 'button';
+  exportSetBtn.textContent = 'Set → Library';
+  exportSetBtn.style.display = 'none';
+
   const changeFolderBtn = document.createElement('button');
   changeFolderBtn.className = 'library-change-btn';
   changeFolderBtn.type = 'button';
@@ -51,6 +59,7 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
   closeBtn.textContent = '×';
 
   header.appendChild(title);
+  header.appendChild(exportSetBtn);
   header.appendChild(changeFolderBtn);
   header.appendChild(closeBtn);
 
@@ -84,6 +93,7 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     searchInput.addEventListener('input', onSearchInput);
 
     changeFolderBtn.style.display = '';
+    updateExportBtnVisibility();
   }
 
   function renderListItems(songs: Song[], list: HTMLUListElement): void {
@@ -141,6 +151,39 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     body.appendChild(emptyDiv);
 
     changeFolderBtn.style.display = 'none';
+    exportSetBtn.style.display = 'none';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Export button helpers
+  // ---------------------------------------------------------------------------
+
+  function updateExportBtnVisibility(): void {
+    const visible = options.onExportSetToLibrary !== undefined && options.hasSet();
+    exportSetBtn.style.display = visible ? '' : 'none';
+  }
+
+  exportSetBtn.addEventListener('click', () => {
+    void (async () => {
+      exportSetBtn.disabled = true;
+      exportSetBtn.textContent = '…';
+      await options.onExportSetToLibrary?.();
+      await refresh();
+      exportSetBtn.disabled = false;
+      exportSetBtn.textContent = 'Set → Library';
+    })();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Refresh: reload songs from library folder
+  // ---------------------------------------------------------------------------
+
+  async function refresh(): Promise<void> {
+    const result = await loadLibrarySongs();
+    if (result) {
+      allSongs = result.songs;
+      renderSongList(allSongs);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -231,6 +274,7 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     for (const btn of addButtons) {
       btn.disabled = !has;
     }
+    updateExportBtnVisibility();
   }
 
   function dispose(): void {
@@ -239,5 +283,5 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     aside.remove();
   }
 
-  return { el: aside, open, close, toggle, setHasSet, dispose };
+  return { el: aside, open, close, toggle, setHasSet, refresh, dispose };
 }

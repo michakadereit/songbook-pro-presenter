@@ -7,6 +7,7 @@ import { toggleFullscreen } from './fullscreen';
 import { createListenerPanel } from './views/ListenerPanel';
 import { createLibraryView } from './views/LibraryView';
 import { songSetToSbpBlob } from './exporter';
+import { exportSongsToLibrary } from './libraryStore';
 import type { SongSet } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -138,6 +139,10 @@ const libraryView = createLibraryView({
       ],
     };
     loadSet(newSet, activeSongSet.name);
+  },
+  onExportSetToLibrary: async () => {
+    if (!activeSongSet) return;
+    await exportSongsToLibrary(activeSongSet.songs);
   },
 });
 document.body.append(libraryView.el);

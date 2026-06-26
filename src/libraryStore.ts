@@ -1,6 +1,7 @@
-import type { Song } from './types';
+import type { Song, SongSet } from './types';
 import { parseChordProFolder } from './chordproFolder';
 import { parseSbp } from './parser';
+import { songSetToSbpBlob } from './exporter';
 
 export interface LibraryResult {
   songs: Song[];
@@ -142,4 +143,41 @@ export async function loadLibrarySongs(): Promise<LibraryResult | null> {
  */
 export async function clearLibrary(): Promise<void> {
   await deleteHandle();
+}
+
+/**
+ * Export each song in `songs` as its own `.sbp` file into the configured
+ * library folder.
+ *
+ * Returns `{ written: 0 }` when no folder handle is stored or the user denies
+ * write permission.  Individual file failures are silently skipped.
+ */
+export async function exportSongsToLibrary(songs: Song[]): Promise<{ written: number }> {
+  const handle = await getHandle();
+  if (!handle) return { written: 0 };
+
+  const perm = await handle.requestPermission({ mode: 'readwrite' });
+  if (perm !== 'granted') return { written: 0 };
+
+  let written = 0;
+  for (const song of songs) {
+    try {
+      const singleSet: SongSet = {
+        id: song.id,
+        name: song.name,
+        date: '',
+        songs: [song],
+      };
+      const blob = songSetToSbpBlob(singleSet);
+      const fileName = `${song.name}.sbp`;
+      const fileHandle = await handle.getFileHandle(fileName, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      written++;
+    } catch {
+      // single file failure — skip, continue with remaining songs
+    }
+  }
+  return { written };
 }
