@@ -5,6 +5,7 @@ import { folderNameFromFiles, markSetLoaded } from './shellHelpers';
 import { nextTheme, applyTheme, loadTheme } from './theme';
 import { toggleFullscreen } from './fullscreen';
 import { createListenerPanel } from './views/ListenerPanel';
+import { songSetToSbpBlob } from './exporter';
 import type { SongSet } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -12,6 +13,7 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <header class="shell-bar">
     <span class="shell-bar__spacer"></span>
+    <button class="shell-bar__btn" id="export-btn" type="button">Exportieren</button>
     <button class="shell-bar__btn" id="theme-btn" type="button">Theme: Auto</button>
     <button class="shell-bar__btn" id="fullscreen-btn" type="button">Vollbild</button>
   </header>
@@ -97,6 +99,9 @@ folderInput.setAttribute('webkitdirectory', '');
 /** Dispose function for the currently mounted view switcher; null if none loaded yet. */
 let activeSwitcher: { dispose(): void } | null = null;
 
+/** Currently loaded SongSet; null if none loaded yet. */
+let activeSongSet: SongSet | null = null;
+
 /**
  * Mount a new ViewSwitcher for the given SongSet, disposing the previous one.
  * Updates the status line with the set label.
@@ -105,6 +110,7 @@ function loadSet(set: SongSet, label: string): void {
   status.textContent = `Geladen: ${label} (${set.songs.length} Songs)`;
   activeSwitcher?.dispose();
   activeSwitcher = mountViewSwitcher(songs, set, 'slide');
+  activeSongSet = set;
   markSetLoaded(document.body);
 }
 
@@ -119,6 +125,7 @@ fileInput.addEventListener('change', async () => {
     status.textContent = `Fehler beim Laden: ${(err as Error).message}`;
     activeSwitcher?.dispose();
     activeSwitcher = null;
+    activeSongSet = null;
     songs.replaceChildren();
   }
 });
@@ -142,6 +149,21 @@ folderInput.addEventListener('change', async () => {
     status.textContent = `Fehler beim Laden: ${(err as Error).message}`;
     activeSwitcher?.dispose();
     activeSwitcher = null;
+    activeSongSet = null;
     songs.replaceChildren();
   }
+});
+
+// --- Export button ---
+const exportBtn = app.querySelector<HTMLButtonElement>('#export-btn')!;
+
+exportBtn.addEventListener('click', () => {
+  if (!activeSongSet) return;
+  const blob = songSetToSbpBlob(activeSongSet);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${activeSongSet.name}.sbp`;
+  a.click();
+  URL.revokeObjectURL(url);
 });
