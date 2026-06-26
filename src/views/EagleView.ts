@@ -3,15 +3,20 @@ import { renderSong } from '../components/SongRenderer';
 import { transposeSong } from '../transpose';
 
 /**
+ * Handle returned by `mountEagleView` that allows the caller to drive
+ * search and transpose state externally (e.g. from a global controls bar).
+ */
+export interface EagleViewHandle {
+  setQuery(q: string): void;
+  setTranspose(n: number): void;
+}
+
+/**
  * Render every song of the set as a chord-only tile in a responsive grid —
  * a quick structural overview before/during a set.
  *
  * DOM contract:
  *   .eagle-view            — root wrapper
- *     .eagle-controls      — toolbar: transpose slider + lyric search
- *       input[type=range]  — transpose range −6…+6
- *       .transpose-value   — visible offset label ("0", "+2", "-3")
- *       input[type=search] — lyric filter field
  *     .eagle-grid          — responsive CSS grid
  *       .eagle-tile*       — one card per song, each holding a chords-only .song
  *
@@ -19,18 +24,28 @@ import { transposeSong } from '../transpose';
  * carries the `song--no-lyrics` modifier and only chords are visible.
  *
  * State is held in the closure:
- *   - `offset`  — current semitone shift (from slider)
- *   - `query`   — current search term (from search field)
+ *   - `offset`  — current semitone shift
+ *   - `query`   — current search term
  *
+ * Both can be driven externally via the returned `EagleViewHandle`.
  * `applyView()` rebuilds all tiles with the current offset, then re-applies the
  * current filter, so transpose and search are always combined correctly.
+ *
+ * @param root      Element to render into (replaces its children).
+ * @param set       SongSet to display.
+ * @param opts      Optional initial state: `query` (default '') and `transpose` (default 0).
+ * @returns         Handle with `setQuery` and `setTranspose` for external control.
  */
-export function mountEagleView(root: HTMLElement, set: SongSet): void {
+export function mountEagleView(
+  root: HTMLElement,
+  set: SongSet,
+  opts?: { query?: string; transpose?: number },
+): EagleViewHandle {
   // -------------------------------------------------------------------------
-  // Closure state
+  // Closure state — initialised from opts
   // -------------------------------------------------------------------------
-  let offset = 0;
-  let query = '';
+  let offset = opts?.transpose ?? 0;
+  let query = opts?.query ?? '';
 
   // -------------------------------------------------------------------------
   // Build DOM skeleton
@@ -38,41 +53,9 @@ export function mountEagleView(root: HTMLElement, set: SongSet): void {
   const view = document.createElement('div');
   view.className = 'eagle-view';
 
-  // --- Controls toolbar -----------------------------------------------------
-  const controls = document.createElement('div');
-  controls.className = 'eagle-controls';
-
-  // Transpose slider
-  const slider = document.createElement('input');
-  slider.type = 'range';
-  slider.min = '-6';
-  slider.max = '6';
-  slider.step = '1';
-  slider.value = '0';
-  slider.className = 'transpose-slider';
-  slider.setAttribute('aria-label', 'Transpose');
-
-  // Visible offset label
-  const offsetLabel = document.createElement('span');
-  offsetLabel.className = 'transpose-value';
-  offsetLabel.textContent = '0';
-
-  // Search field
-  const searchInput = document.createElement('input');
-  searchInput.type = 'search';
-  searchInput.placeholder = 'Lyrics suchen…';
-  searchInput.className = 'eagle-search';
-  searchInput.setAttribute('aria-label', 'Lyrics suchen');
-
-  controls.appendChild(slider);
-  controls.appendChild(offsetLabel);
-  controls.appendChild(searchInput);
-
-  // --- Grid -----------------------------------------------------------------
   const grid = document.createElement('div');
   grid.className = 'eagle-grid';
 
-  view.appendChild(controls);
   view.appendChild(grid);
   root.replaceChildren(view);
 
@@ -138,25 +121,21 @@ export function mountEagleView(root: HTMLElement, set: SongSet): void {
   }
 
   // -------------------------------------------------------------------------
-  // Event listeners
-  // -------------------------------------------------------------------------
-
-  slider.addEventListener('input', () => {
-    offset = parseInt(slider.value, 10);
-
-    // Update visible label: prefix '+' for positive values
-    offsetLabel.textContent = offset > 0 ? `+${offset}` : String(offset);
-
-    applyView();
-  });
-
-  searchInput.addEventListener('input', () => {
-    query = searchInput.value;
-    applyFilter();
-  });
-
-  // -------------------------------------------------------------------------
   // Initial render
   // -------------------------------------------------------------------------
   applyView();
+
+  // -------------------------------------------------------------------------
+  // External handle
+  // -------------------------------------------------------------------------
+  return {
+    setQuery(q: string): void {
+      query = q;
+      applyFilter();
+    },
+    setTranspose(n: number): void {
+      offset = n;
+      applyView();
+    },
+  };
 }
