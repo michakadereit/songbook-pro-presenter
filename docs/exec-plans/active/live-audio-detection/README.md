@@ -24,11 +24,11 @@ zuerst** steht und die riskante Akkorderkennung am Ende klar als experimentell a
 
 | Ticket | Beschreibung | Abhängigkeit | Modell | Status |
 |---|---|---|---|---|
-| TICKET-001 | `noteMath.ts` — pure Hz→Note, Chroma→Tonart, Chroma→Akkord (TDD) | — | Sonnet | TODO |
-| TICKET-002 | `micCapture.ts` + `levelMeter.ts` — Gate + RMS/Lautstärke | — | Sonnet | TODO |
-| TICKET-003 | `ListenerPanel.ts` + Shell-Mount + CSS — Toggle + Bar + Anzeige | 001, 002 | Opus | TODO |
-| TICKET-004 | `pitchDetector.ts` (pitchy) → Note + Tonart über Zeitfenster, im Panel | 001, 002, 003 | Sonnet | TODO |
-| TICKET-005 | `chroma.ts` + experimenteller Akkord-Modus im Panel | 001, 003, 004 | Sonnet | TODO |
+| TICKET-001 | `noteMath.ts` — pure Hz→Note, Chroma→Tonart, Chroma→Akkord (TDD) | — | Sonnet | DONE |
+| TICKET-002 | `micCapture.ts` + `levelMeter.ts` — Gate + RMS/Lautstärke | — | Sonnet | DONE |
+| TICKET-003 | `ListenerPanel.ts` + Shell-Mount + CSS — Toggle + Bar + Anzeige | 001, 002 | Opus | DONE |
+| TICKET-004 | `pitchDetector.ts` (pitchy) → Note + Tonart über Zeitfenster, im Panel | 001, 002, 003 | Sonnet | DONE |
+| TICKET-005 | `chroma.ts` + experimenteller Akkord-Modus im Panel | 001, 003, 004 | Sonnet | DONE |
 
 ## Parallelisierung
 
@@ -58,9 +58,9 @@ zuerst** steht und die riskante Akkorderkennung am Ende klar als experimentell a
 
 ## Definition of Done
 
-- [ ] Alle Tickets DONE
-- [ ] `npm test` grün, `npx tsc --noEmit` sauber
-- [ ] Views/Renderer/Transpose unverändert (AC7)
+- [x] Alle Tickets DONE
+- [x] `npm test` grün (252/252), `npx tsc --noEmit` sauber
+- [x] Views/Renderer/Transpose unverändert (AC7)
 - [ ] Manuelle Verifikation durch User: aktivieren → Bar reagiert auf Stimme/Instrument,
       Note erscheint, deaktivieren → Mic-Indikator aus, Bar 0
 - [ ] Merge nach `main`, Plan → `completed/`, Branch-Cleanup
