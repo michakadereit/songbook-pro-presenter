@@ -156,7 +156,7 @@ export function mountSlideView(root: HTMLElement, set: SongSet): () => void {
   // Font size slider
   const slider = document.createElement('input');
   slider.type = 'range';
-  slider.min = '60';
+  slider.min = '30';
   slider.max = '200';
   slider.step = '10';
   slider.value = '100';

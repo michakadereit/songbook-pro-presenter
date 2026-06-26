@@ -323,9 +323,9 @@ describe('mountSlideView — AC6: font size slider', () => {
     expect(slider).not.toBeNull();
   });
 
-  it('slider has attributes min=60, max=200, step=10, value=100', () => {
+  it('slider has attributes min=30, max=200, step=10, value=100', () => {
     const slider = root.querySelector('.slide-controls input[type="range"]') as HTMLInputElement;
-    expect(slider.min).toBe('60');
+    expect(slider.min).toBe('30');
     expect(slider.max).toBe('200');
     expect(slider.step).toBe('10');
     expect(slider.value).toBe('100');

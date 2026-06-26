@@ -34,3 +34,32 @@
 ## Nächste Schritte
 - Optional: echtes Fullscreen am Gerät prüfen (headless blockiert); Tastatur-Shortcut dafür.
 - Optional: globalen Transpose/Suche in die Shell heben; Schrift-Slider auch für Eagle.
+
+---
+
+## Session 2 — Planung global-controls + slide-multicolumn
+
+### Gemacht
+- Zwei neue Feature-Requests aufgenommen:
+  1. **Global Controls**: Suchfeld + Transpose-Regler global im ViewSwitcher (view-unabhängig)
+  2. **Slide Multi-Column**: Zwei-Spalten-Layout in der Slide-View (Inhalt fließt rechts weiter)
+- Specs geschrieben:
+  - `docs/specs/global-controls/spec.md` (10 ACs)
+  - `docs/specs/slide-multicolumn/spec.md` (6 ACs)
+- Exec Plans angelegt:
+  - `docs/exec-plans/active/global-controls/` (4 Tickets: DOM → Eagle-Refactor → Slide-Refactor → Wire)
+  - `docs/exec-plans/active/slide-multicolumn/` (2 Tickets: CSS-Toggle → localStorage)
+
+### Entscheidungen
+- **global-controls**: ViewSwitcher wird State-Owner für Query + Transpose; Views bekommen
+  ein optionales `opts`-Objekt beim Mount + geben Handle zurück (setQuery/setTranspose).
+  Schriftgrößen-Regler bleibt Slide-spezifisch.
+- **slide-multicolumn**: CSS Multi-Column (`columns: 2; column-fill: auto; height: 100%`) +
+  CSS-Modifier `.slide-view--two-col`; kein Auto-Detection, Toggle-Button als explizite UX.
+  Persistenz in localStorage (TICKET-002).
+- **Reihenfolge**: `global-controls` zuerst (ändert SlideView-API), dann `slide-multicolumn`
+  branchen — kein Merge-Konflikt-Risiko.
+
+### Nächste Schritte
+- `feat/global-controls` branchen → TICKET-001 → 002 → 003 → 004 (alle Sonnet, Vordergrund)
+- Danach `feat/slide-multicolumn` → TICKET-001 → 002 (Sonnet / Haiku)
