@@ -90,3 +90,31 @@
 - **198 Tests grün**, `tsc` sauber, Build sauber
 - Beide Feature-Branches gelöscht, beide Pläne in completed/
 - Schriftgrößen-Slider-Minimum auf 30 % erweitert (kleinere Commit am selben Tag)
+
+---
+
+## Session 4 — Planung live-audio-detection (Mikro → Note/Tonart/Akkord)
+
+### Gemacht
+- Neuer Feature-Request: über das eingebaute Mac-Mic live Sound aufnehmen (nur bei Aktivierung),
+  Lautstärke-Bar als Signal-Check, und daraus Note/Tonart/Akkord erkennen.
+- Library-Recherche (WebSearch): `pitchy` (monophone Tonhöhe), `meyda`/eigener Chroma,
+  `essentia.js` (HPCP/Chords/Key, aber npm 0.1.3 ~4 J. alt + WASM/Worklet-Reibung → nur Upgrade-Pfad).
+- `docs/specs/live-audio-detection/spec.md` geschrieben (7 ACs, Realismus-Tabelle, Architektur).
+- Exec Plan `docs/exec-plans/active/live-audio-detection/` (5 Tickets) angelegt.
+
+### Entscheidungen
+- **Realismus ehrlich gestaffelt**: Mic-Gate + Lautstärke-Bar + monophone Note/Tonart sind
+  robust (★★★★+); polyphone Akkorderkennung aus dem Bandmix über das eingebaute Mic ist
+  experimentell (★★) → als Best-Effort-Modus, am besten bei isoliertem Instrument.
+- **Additives Sidecar, kein Loader**: neues `src/audio/*` + `src/views/ListenerPanel.ts`,
+  im Shell gemountet. Views/Renderer/Transpose bleiben unangetastet (Architektur-Regel).
+- **Hexagonal-light**: pure Mathematik in `noteMath.ts` (TDD ohne Mic) getrennt von Web-Audio-
+  Adaptern (`micCapture`/`levelMeter`/`chroma`/`pitchDetector`).
+- **Gate = echtes Aus** via `track.stop()` (Mic-Indikator erlischt), nicht nur `enabled=false`.
+- **Phasen-Strategie**: Fundament (001/002, parallelisierbar) → Panel (003) → Note/Tonart (004)
+  → Akkord experimentell (005). Ab 003 sequenziell (geteilte ListenerPanel.ts/main.css).
+
+### Nächste Schritte
+- Spec/Tickets gegenlesen, dann `feat/live-audio-detection` branchen → 001/002 → 003 → 004 → 005.
+- Echte Mic-/Erkennungs-Verifikation manuell am Gerät (headless Playwright Mic eingeschränkt).
