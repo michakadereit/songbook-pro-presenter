@@ -5,6 +5,7 @@ import { folderNameFromFiles, markSetLoaded } from './shellHelpers';
 import { nextTheme, applyTheme, loadTheme } from './theme';
 import { toggleFullscreen } from './fullscreen';
 import { createListenerPanel } from './views/ListenerPanel';
+import { createLibraryView } from './views/LibraryView';
 import { songSetToSbpBlob } from './exporter';
 import type { SongSet } from './types';
 
@@ -14,6 +15,7 @@ app.innerHTML = `
   <header class="shell-bar">
     <span class="shell-bar__spacer"></span>
     <button class="shell-bar__btn" id="export-btn" type="button">Exportieren</button>
+    <button class="shell-bar__btn" id="library-btn" type="button">Bibliothek</button>
     <button class="shell-bar__btn" id="theme-btn" type="button">Theme: Auto</button>
     <button class="shell-bar__btn" id="fullscreen-btn" type="button">Vollbild</button>
   </header>
@@ -112,7 +114,31 @@ function loadSet(set: SongSet, label: string): void {
   activeSwitcher = mountViewSwitcher(songs, set, 'slide');
   activeSongSet = set;
   markSetLoaded(document.body);
+  libraryView.setHasSet(true);
 }
+
+// ---------------------------------------------------------------------------
+// Song library — drawer panel for appending songs to the active set
+// ---------------------------------------------------------------------------
+
+const libraryView = createLibraryView({
+  hasSet: () => activeSongSet !== null,
+  onAddSong: (song) => {
+    if (!activeSongSet) return;
+    const newSet: SongSet = {
+      ...activeSongSet,
+      songs: [
+        ...activeSongSet.songs,
+        { ...song, id: activeSongSet.songs.length },
+      ],
+    };
+    loadSet(newSet, activeSongSet.name);
+  },
+});
+document.body.append(libraryView.el);
+
+const libraryBtn = app.querySelector<HTMLButtonElement>('#library-btn')!;
+libraryBtn.addEventListener('click', () => libraryView.toggle());
 
 // --- .sbp file input ---
 fileInput.addEventListener('change', async () => {
@@ -126,6 +152,7 @@ fileInput.addEventListener('change', async () => {
     activeSwitcher?.dispose();
     activeSwitcher = null;
     activeSongSet = null;
+    libraryView.setHasSet(false);
     songs.replaceChildren();
   }
 });
@@ -150,6 +177,7 @@ folderInput.addEventListener('change', async () => {
     activeSwitcher?.dispose();
     activeSwitcher = null;
     activeSongSet = null;
+    libraryView.setHasSet(false);
     songs.replaceChildren();
   }
 });
