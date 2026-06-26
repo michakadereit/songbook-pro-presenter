@@ -67,7 +67,7 @@ async function songsFromHandle(
   for await (const entry of handle.values()) {
     if (entry.kind !== 'file') continue;
     const fileHandle = entry as FileSystemFileHandle;
-    if (entry.name.endsWith('.chopro')) {
+    if (entry.name.endsWith('.chopro') || entry.name.endsWith('.txt')) {
       choProFiles.push(await fileHandle.getFile());
     } else if (entry.name.endsWith('.sbp')) {
       sbpFiles.push(await fileHandle.getFile());
