@@ -15,6 +15,7 @@ app.innerHTML = `
   <header class="shell-bar">
     <span class="shell-bar__spacer"></span>
     <button class="shell-bar__btn" id="export-btn" type="button">Exportieren</button>
+    <button class="shell-bar__btn" id="discard-btn" type="button">Set verwerfen</button>
     <button class="shell-bar__btn" id="library-btn" type="button">Bibliothek</button>
     <button class="shell-bar__btn" id="theme-btn" type="button">Theme: Auto</button>
     <button class="shell-bar__btn" id="fullscreen-btn" type="button">Vollbild</button>
@@ -211,4 +212,17 @@ exportBtn.addEventListener('click', () => {
   a.download = `${activeSongSet.name}.sbp`;
   a.click();
   URL.revokeObjectURL(url);
+});
+
+// --- Discard button ---
+const discardBtn = app.querySelector<HTMLButtonElement>('#discard-btn')!;
+
+discardBtn.addEventListener('click', () => {
+  activeSwitcher?.dispose();
+  activeSwitcher = null;
+  activeSongSet = null;
+  libraryView.setHasSet(false);
+  document.body.classList.remove('has-set');
+  songs.replaceChildren();
+  status.textContent = '';
 });

@@ -146,6 +146,14 @@ body.has-set #export-btn {
   display: inline-flex;
 }
 
+#discard-btn {
+  display: none;
+}
+
+body.has-set #discard-btn {
+  display: inline-flex;
+}
+
 /* ===========================================================================
    App shell / dropzone
    =========================================================================== */
