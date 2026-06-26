@@ -39,6 +39,13 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
   title.className = 'library-drawer__title';
   title.textContent = 'Bibliothek';
 
+  const refreshBtn = document.createElement('button');
+  refreshBtn.className = 'library-refresh-btn';
+  refreshBtn.type = 'button';
+  refreshBtn.setAttribute('aria-label', 'Aktualisieren');
+  refreshBtn.textContent = '↻';
+  refreshBtn.style.display = 'none';
+
   const exportSetBtn = document.createElement('button');
   exportSetBtn.className = 'library-export-btn';
   exportSetBtn.type = 'button';
@@ -59,6 +66,7 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
   closeBtn.textContent = '×';
 
   header.appendChild(title);
+  header.appendChild(refreshBtn);
   header.appendChild(exportSetBtn);
   header.appendChild(changeFolderBtn);
   header.appendChild(closeBtn);
@@ -93,6 +101,7 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     searchInput.addEventListener('input', onSearchInput);
 
     changeFolderBtn.style.display = '';
+    refreshBtn.style.display = '';
     updateExportBtnVisibility();
   }
 
@@ -151,6 +160,7 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     body.appendChild(emptyDiv);
 
     changeFolderBtn.style.display = 'none';
+    refreshBtn.style.display = 'none';
     exportSetBtn.style.display = 'none';
   }
 
@@ -172,6 +182,16 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
       exportSetBtn.disabled = false;
       exportSetBtn.textContent = 'Set → Library';
     })();
+  });
+
+  async function onRefreshClick(): Promise<void> {
+    refreshBtn.disabled = true;
+    await refresh();
+    refreshBtn.disabled = false;
+  }
+
+  refreshBtn.addEventListener('click', () => {
+    void onRefreshClick();
   });
 
   // ---------------------------------------------------------------------------
@@ -279,6 +299,9 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
 
   function dispose(): void {
     changeFolderBtn.removeEventListener('click', onChangeFolderClick);
+    refreshBtn.removeEventListener('click', () => {
+      void onRefreshClick();
+    });
     closeBtn.removeEventListener('click', onCloseClick);
     aside.remove();
   }

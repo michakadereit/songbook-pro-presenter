@@ -1146,3 +1146,23 @@ body.has-set .uploader {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.library-refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+  padding: var(--space-1) var(--space-2);
+  border-radius: calc(var(--radius) / 2);
+  line-height: 1;
+}
+
+.library-refresh-btn:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.library-refresh-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
