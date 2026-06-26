@@ -63,3 +63,30 @@
 ### Nächste Schritte
 - `feat/global-controls` branchen → TICKET-001 → 002 → 003 → 004 (alle Sonnet, Vordergrund)
 - Danach `feat/slide-multicolumn` → TICKET-001 → 002 (Sonnet / Haiku)
+
+---
+
+## Session 3 — Implementierung global-controls + slide-multicolumn
+
+### Gemacht
+- **global-controls** (4 Tickets, sequenziell, je Sonnet-Agent im Vordergrund):
+  - T-001: `.global-controls` DOM+CSS in ViewSwitcher (Suchfeld + Transpose-Slider in Tab-Leiste)
+  - T-002: EagleView ohne eigene Controls — gibt `EagleViewHandle` mit `setQuery`/`setTranspose` zurück
+  - T-003: SlideView ohne eigene Suche, mit Transpose-Support — gibt `SlideViewHandle` zurück
+  - T-004: ViewSwitcher verdrahtet Controls mit aktivem View-Handle; View-Wechsel übergibt State
+  - Browser-Verifikation: Suche filtert Slide (1/1) + Eagle (4 versteckt/1 sichtbar); Transpose +2 → A→B, E→F#; View-Wechsel behält beides
+  - Merge auf main, Branch gelöscht, Plan → completed/
+- **slide-multicolumn** (2 Tickets, sequenziell):
+  - T-001: CSS `.slide-view--two-col` mit `height:100dvh`-Pinning, `columns:2`, `break-inside:avoid`; Toggle-Button „2 Sp."
+  - T-002: localStorage-Persistenz (`slide-two-col`-Key)
+  - Browser-Verifikation: `.slide-view` schrumpft 5555 px → 989 px; `column-count:2`; Inhalt fließt rechts weiter
+  - Merge auf main, Branch gelöscht, Plan → completed/
+
+### Entscheidungen
+- **Viewport-Pinning** war der kritische CSS-Bug im Plan: ohne `height:100dvh` auf `.slide-view--two-col` hätte `height:100%` auf `.song` zur content-driven Höhe aufgelöst → kein Clip. Durch Playwright-Messung (5555 px vs. 933 px Viewport) im Vorfeld erkannt und korrigiert.
+- **Sequentielle Agenten im Vordergrund**: alle 6 Tickets liefen sauber durch. Kein Merge-Konflikt, da global-controls erst vollständig in main war, bevor slide-multicolumn gebranchtet wurde.
+
+### Endstand
+- **198 Tests grün**, `tsc` sauber, Build sauber
+- Beide Feature-Branches gelöscht, beide Pläne in completed/
+- Schriftgrößen-Slider-Minimum auf 30 % erweitert (kleinere Commit am selben Tag)
