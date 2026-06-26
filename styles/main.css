@@ -570,6 +570,40 @@ body.has-set .uploader {
   min-width: 3.5rem;
 }
 
+/* Lyric search field in the slide controls toolbar */
+.slide-search {
+  flex: 1;
+  min-width: 8rem;
+  max-width: 18rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.slide-search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.slide-search::placeholder {
+  color: var(--fg-muted);
+}
+
+/* No-results hint shown in .slide-body when the search has no matches */
+.slide-no-results {
+  margin: 0;
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  padding: var(--space-7) 0;
+}
+
 /* --- Header: dimmed position indicator + prominent title ------------------ */
 
 .slide-header {

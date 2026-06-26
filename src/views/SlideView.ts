@@ -1,4 +1,4 @@
-import type { SongSet } from '../types';
+import type { Song, SongSet } from '../types';
 import { renderSong } from '../components/SongRenderer';
 
 /**
@@ -6,15 +6,31 @@ import { renderSong } from '../components/SongRenderer';
  *
  * DOM contract:
  *   .slide-view          — root wrapper; carries --slide-font-scale CSS property
- *     .slide-controls    — persistent toolbar (font size slider, future controls)
+ *     .slide-controls    — persistent toolbar (search field + font size slider)
+ *       input[type=search] — lyric filter: reduces navigable songs to matches
+ *       input[type=range]  — font size slider (60–200 %)
+ *       .slide-font-scale-value — visible percentage label
  *     .slide-header      — top bar with position indicator and song title
- *       .slide-position  — "n / total" indicator
+ *       .slide-position  — "n / total" indicator (or "0 / 0" when no matches)
  *       .slide-title     — current song name
- *     .slide-body        — holds the rendered song (.song article)
+ *     .slide-body        — holds the rendered song (.song article), or a
+ *                          .slide-no-results hint when the search has no matches
+ *
+ * Closure state:
+ *   - `matches`   — indices into `set.songs` whose lyric text contains the
+ *                   current search term (case-insensitive); all indices when
+ *                   the search field is empty.
+ *   - `cursor`    — 0-based position within `matches`; navigation clamps here.
+ *   - `fontScale` — CSS scale factor driven by the font-size slider.
  *
  * Static structure (wrapper, controls, header) is built ONCE on mount.
  * Only the body children and header text are updated on navigation, so
- * controls retain their state (slider position, focus) across song changes.
+ * controls retain their state (slider position, search text, focus) across
+ * song changes.
+ *
+ * Keyboard guard: if the keydown event originates from an <input> or
+ * <textarea>, the handler returns early so typing in the search field does
+ * not accidentally navigate songs.
  *
  * @returns dispose — removes the window keydown listener (call when unmounting).
  */
@@ -22,37 +38,59 @@ export function mountSlideView(root: HTMLElement, set: SongSet): () => void {
   // ---------------------------------------------------------------------------
   // Closure state
   // ---------------------------------------------------------------------------
-  let index = 0;
-  const total = set.songs.length;
+  let matches: number[] = set.songs.map((_, i) => i); // all indices initially
+  let cursor = 0;
   let fontScale = 1; // Default 100 %
 
   // ---------------------------------------------------------------------------
-  // Navigation helpers (all clamp, no wrap)
+  // Lyric-text helper — same approach as EagleView
+  // ---------------------------------------------------------------------------
+  function lyricsText(song: Song): string {
+    return song.sections
+      .flatMap((s) => s.lines.map((l) => l.lyrics))
+      .join(' ')
+      .toLowerCase();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Rebuild matches from a search query
+  // ---------------------------------------------------------------------------
+  function rebuildMatches(query: string): number[] {
+    if (query === '') return set.songs.map((_, i) => i);
+    const term = query.toLowerCase();
+    return set.songs.reduce<number[]>((acc, song, i) => {
+      if (lyricsText(song).includes(term)) acc.push(i);
+      return acc;
+    }, []);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Navigation helpers (all clamp within matches, no wrap)
   // ---------------------------------------------------------------------------
   function next(): void {
-    if (index < total - 1) {
-      index += 1;
+    if (cursor < matches.length - 1) {
+      cursor += 1;
       render();
     }
   }
 
   function prev(): void {
-    if (index > 0) {
-      index -= 1;
+    if (cursor > 0) {
+      cursor -= 1;
       render();
     }
   }
 
   function first(): void {
-    if (index !== 0) {
-      index = 0;
+    if (matches.length > 0 && cursor !== 0) {
+      cursor = 0;
       render();
     }
   }
 
   function last(): void {
-    if (index !== total - 1) {
-      index = total - 1;
+    if (matches.length > 0 && cursor !== matches.length - 1) {
+      cursor = matches.length - 1;
       render();
     }
   }
@@ -61,6 +99,14 @@ export function mountSlideView(root: HTMLElement, set: SongSet): () => void {
   // Keyboard handler
   // ---------------------------------------------------------------------------
   function onKeyDown(event: KeyboardEvent): void {
+    // Guard: do not navigate when the user is typing in an input field
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+
     switch (event.key) {
       case 'ArrowRight':
         next();
@@ -90,10 +136,24 @@ export function mountSlideView(root: HTMLElement, set: SongSet): () => void {
   const wrapper = document.createElement('div');
   wrapper.className = 'slide-view';
 
-  // --- Controls bar (font size slider) --------------------------------------
+  // --- Controls bar (search field + font size slider) -----------------------
   const controls = document.createElement('div');
   controls.className = 'slide-controls';
 
+  // Search field
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.placeholder = 'Lyrics suchen…';
+  searchInput.className = 'slide-search';
+  searchInput.setAttribute('aria-label', 'Lyrics suchen');
+
+  searchInput.addEventListener('input', () => {
+    matches = rebuildMatches(searchInput.value);
+    cursor = 0;
+    render();
+  });
+
+  // Font size slider
   const slider = document.createElement('input');
   slider.type = 'range';
   slider.min = '60';
@@ -111,6 +171,7 @@ export function mountSlideView(root: HTMLElement, set: SongSet): () => void {
     wrapper.style.setProperty('--slide-font-scale', String(fontScale));
   });
 
+  controls.appendChild(searchInput);
   controls.appendChild(slider);
   controls.appendChild(scaleDisplay);
   wrapper.appendChild(controls);
@@ -140,17 +201,26 @@ export function mountSlideView(root: HTMLElement, set: SongSet): () => void {
   // Render — updates only the mutable parts (position, title, body children)
   // ---------------------------------------------------------------------------
   function render(): void {
-    const song = set.songs[index];
+    // Re-apply font scale so the CSS property is set even on the initial render
+    // and is not lost when the wrapper reference changes.
+    wrapper.style.setProperty('--slide-font-scale', String(fontScale));
 
-    positionEl.textContent = `${index + 1} / ${total}`;
+    if (matches.length === 0) {
+      positionEl.textContent = '0 / 0';
+      titleEl.textContent = '';
+      const hint = document.createElement('p');
+      hint.className = 'slide-no-results';
+      hint.textContent = 'Keine Treffer';
+      body.replaceChildren(hint);
+      return;
+    }
+
+    const song = set.songs[matches[cursor]];
+    positionEl.textContent = `${cursor + 1} / ${matches.length}`;
     titleEl.textContent = song.name;
     body.replaceChildren(
       renderSong(song, { showChords: true, showLyrics: true, chordRatio: 0.8 }),
     );
-
-    // Re-apply font scale so the CSS property is set even on the initial render
-    // and is not lost when the wrapper reference changes.
-    wrapper.style.setProperty('--slide-font-scale', String(fontScale));
   }
 
   // Initial render

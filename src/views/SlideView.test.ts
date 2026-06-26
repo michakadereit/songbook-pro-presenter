@@ -3,6 +3,46 @@ import { mountSlideView } from './SlideView';
 import type { Song, SongSet } from '../types';
 
 // ---------------------------------------------------------------------------
+// Search fixture — 4 songs with distinct and overlapping lyric words
+// ---------------------------------------------------------------------------
+
+function makeSongWithLyrics(id: number, name: string, lyrics: string): Song {
+  return {
+    id,
+    name,
+    author: `Author ${id}`,
+    keyShift: 0,
+    sections: [
+      {
+        title: 'Verse',
+        lines: [{ lyrics, chords: [] }],
+      },
+    ],
+  };
+}
+
+const searchSet: SongSet = {
+  id: 2,
+  name: 'Search Set',
+  date: '2026-06-26T00:00:00.000',
+  songs: [
+    makeSongWithLyrics(10, 'Song Alpha', 'hallelujah praise'),
+    makeSongWithLyrics(11, 'Song Beta', 'amazing grace'),
+    makeSongWithLyrics(12, 'Song Gamma', 'glory forever'),
+    makeSongWithLyrics(13, 'Song Delta', 'hallelujah glory'),
+  ],
+};
+
+/** Set the search field value and fire the 'input' event. */
+function setSearch(root: HTMLElement, value: string): void {
+  const input = root.querySelector(
+    '.slide-controls input[type="search"]',
+  ) as HTMLInputElement;
+  input.value = value;
+  input.dispatchEvent(new Event('input'));
+}
+
+// ---------------------------------------------------------------------------
 // Fixture: 3 songs, each with one section and one chorded line.
 // ---------------------------------------------------------------------------
 
@@ -320,5 +360,202 @@ describe('mountSlideView — AC6: font size slider', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
     const wrapper = root.querySelector('.slide-view') as HTMLElement;
     expect(wrapper.style.getPropertyValue('--slide-font-scale')).toBe('1.5');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC7 — Lyric search: filters songs, shows first match, updates position
+// ---------------------------------------------------------------------------
+
+describe('mountSlideView — AC7: lyric search filters to matching songs', () => {
+  let root: HTMLElement;
+  let dispose: () => void;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    dispose = mountSlideView(root, searchSet);
+  });
+
+  afterEach(() => {
+    dispose();
+  });
+
+  it('renders a search input inside .slide-controls', () => {
+    const input = root.querySelector('.slide-controls input[type="search"]');
+    expect(input).not.toBeNull();
+  });
+
+  it('searching "hallelujah" jumps to Song Alpha (first match)', () => {
+    setSearch(root, 'hallelujah');
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Alpha');
+  });
+
+  it('position shows "1 / 2" when 2 songs match "hallelujah"', () => {
+    setSearch(root, 'hallelujah');
+    expect(root.querySelector('.slide-position')!.textContent).toBe('1 / 2');
+  });
+
+  it('searching "glory" shows Song Gamma first; position "1 / 2"', () => {
+    setSearch(root, 'glory');
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Gamma');
+    expect(root.querySelector('.slide-position')!.textContent).toBe('1 / 2');
+  });
+
+  it('searching "grace" shows only Song Beta; position "1 / 1"', () => {
+    setSearch(root, 'grace');
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Beta');
+    expect(root.querySelector('.slide-position')!.textContent).toBe('1 / 1');
+  });
+
+  it('search is case-insensitive: "HALLELUJAH" matches Song Alpha', () => {
+    setSearch(root, 'HALLELUJAH');
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Alpha');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC8 — Navigation clamps within the filtered matches, not the full set
+// ---------------------------------------------------------------------------
+
+describe('mountSlideView — AC8: navigation clamps within filtered matches', () => {
+  let root: HTMLElement;
+  let dispose: () => void;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    dispose = mountSlideView(root, searchSet);
+    setSearch(root, 'hallelujah'); // matches Alpha (index 0) and Delta (index 3)
+  });
+
+  afterEach(() => {
+    dispose();
+  });
+
+  it('ArrowRight from Alpha moves to Delta (second match)', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Delta');
+    expect(root.querySelector('.slide-position')!.textContent).toBe('2 / 2');
+  });
+
+  it('ArrowRight at last match stays on Delta', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Delta');
+  });
+
+  it('End jumps to last match (Delta)', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Delta');
+  });
+
+  it('ArrowLeft at first match stays on Alpha', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Alpha');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC9 — Clearing the search field restores all songs
+// ---------------------------------------------------------------------------
+
+describe('mountSlideView — AC9: clearing search restores all songs', () => {
+  let root: HTMLElement;
+  let dispose: () => void;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    dispose = mountSlideView(root, searchSet);
+  });
+
+  afterEach(() => {
+    dispose();
+  });
+
+  it('after filtering then clearing, all 4 songs navigable; position "1 / 4"', () => {
+    setSearch(root, 'hallelujah');
+    expect(root.querySelector('.slide-position')!.textContent).toBe('1 / 2');
+
+    setSearch(root, '');
+    expect(root.querySelector('.slide-position')!.textContent).toBe('1 / 4');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC10 — No matches: shows "0 / 0", no .song in body, no crash
+// ---------------------------------------------------------------------------
+
+describe('mountSlideView — AC10: no matches shows "0 / 0" and no song body', () => {
+  let root: HTMLElement;
+  let dispose: () => void;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    dispose = mountSlideView(root, searchSet);
+    setSearch(root, 'xyznotfound');
+  });
+
+  afterEach(() => {
+    dispose();
+  });
+
+  it('position shows "0 / 0"', () => {
+    expect(root.querySelector('.slide-position')!.textContent).toBe('0 / 0');
+  });
+
+  it('no .song element inside .slide-body', () => {
+    expect(root.querySelector('.slide-body .song')).toBeNull();
+  });
+
+  it('navigating with no matches does not crash', () => {
+    expect(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home' }));
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
+    }).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC11 — Keyboard guard: keydown on the search input does not navigate
+// ---------------------------------------------------------------------------
+
+describe('mountSlideView — AC11: keyboard guard blocks navigation when focus is in search', () => {
+  let root: HTMLElement;
+  let dispose: () => void;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    dispose = mountSlideView(root, searchSet);
+    // Move to second song first (Song Beta)
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+  });
+
+  afterEach(() => {
+    dispose();
+  });
+
+  it('ArrowRight dispatched on search input does not advance the song', () => {
+    const searchInput = root.querySelector(
+      '.slide-controls input[type="search"]',
+    ) as HTMLInputElement;
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Beta');
+
+    searchInput.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }),
+    );
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Beta');
+  });
+
+  it('Space dispatched on search input does not advance the song', () => {
+    const searchInput = root.querySelector(
+      '.slide-controls input[type="search"]',
+    ) as HTMLInputElement;
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Beta');
+
+    searchInput.dispatchEvent(
+      new KeyboardEvent('keydown', { key: ' ', bubbles: true }),
+    );
+    expect(root.querySelector('.song__title')!.textContent).toBe('Song Beta');
   });
 });
