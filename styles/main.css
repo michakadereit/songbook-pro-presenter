@@ -1099,3 +1099,20 @@ body.has-set .uploader {
 .library-configure-btn {
   margin-inline: auto;
 }
+
+.library-change-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+  padding: var(--space-1) var(--space-2);
+  border-radius: calc(var(--radius) / 2);
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.library-change-btn:hover {
+  color: var(--accent);
+}

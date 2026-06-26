@@ -37,6 +37,13 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
   title.className = 'library-drawer__title';
   title.textContent = 'Bibliothek';
 
+  const changeFolderBtn = document.createElement('button');
+  changeFolderBtn.className = 'library-change-btn';
+  changeFolderBtn.type = 'button';
+  changeFolderBtn.setAttribute('aria-label', 'Ordner wechseln');
+  changeFolderBtn.textContent = 'Ordner wechseln';
+  changeFolderBtn.style.display = 'none';
+
   const closeBtn = document.createElement('button');
   closeBtn.className = 'library-drawer__close';
   closeBtn.type = 'button';
@@ -44,6 +51,7 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
   closeBtn.textContent = '×';
 
   header.appendChild(title);
+  header.appendChild(changeFolderBtn);
   header.appendChild(closeBtn);
 
   // Body
@@ -74,6 +82,8 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     renderListItems(songs, list);
 
     searchInput.addEventListener('input', onSearchInput);
+
+    changeFolderBtn.style.display = '';
   }
 
   function renderListItems(songs: Song[], list: HTMLUListElement): void {
@@ -129,6 +139,8 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     emptyDiv.appendChild(emptyText);
     emptyDiv.appendChild(configureBtn);
     body.appendChild(emptyDiv);
+
+    changeFolderBtn.style.display = 'none';
   }
 
   // ---------------------------------------------------------------------------
@@ -154,10 +166,19 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
     }
   }
 
+  async function onChangeFolderClick(): Promise<void> {
+    const result = await openLibraryFolder();
+    if (result !== null) {
+      allSongs = result.songs;
+      renderSongList(allSongs);
+    }
+  }
+
   function onCloseClick(): void {
     close();
   }
 
+  changeFolderBtn.addEventListener('click', onChangeFolderClick);
   closeBtn.addEventListener('click', onCloseClick);
 
   // ---------------------------------------------------------------------------
@@ -213,6 +234,7 @@ export function createLibraryView(options: LibraryViewOptions): LibraryView {
   }
 
   function dispose(): void {
+    changeFolderBtn.removeEventListener('click', onChangeFolderClick);
     closeBtn.removeEventListener('click', onCloseClick);
     aside.remove();
   }
